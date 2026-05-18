@@ -1,9 +1,9 @@
 from flask import Blueprint, g, jsonify, request
+from flask_jwt_extended import create_access_token
 from pymongo.errors import DuplicateKeyError
 
 from models.user import create_user, find_user_by_email, serialize_user
 from utils.auth_middleware import auth_required
-from utils.jwt_utils import create_access_token
 from utils.passwords import check_password, hash_password
 
 auth_bp = Blueprint("auth", __name__)
@@ -30,7 +30,7 @@ def register():
     except DuplicateKeyError:
         return jsonify({"message": "User with this email already exists."}), 409
 
-    token = create_access_token(str(user["_id"]))
+    token = create_access_token(identity=str(user["_id"]))
 
     return jsonify({"token": token, "user": serialize_user(user)}), 201
 
@@ -48,7 +48,7 @@ def login():
     if not user or not check_password(password, user["password"]):
         return jsonify({"message": "Invalid email or password."}), 401
 
-    token = create_access_token(str(user["_id"]))
+    token = create_access_token(identity=str(user["_id"]))
 
     return jsonify({"token": token, "user": serialize_user(user)}), 200
 

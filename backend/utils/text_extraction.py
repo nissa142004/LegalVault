@@ -62,14 +62,32 @@ def extract_docx_text(file_path: Path) -> str:
 
 
 def clean_text(text: str) -> str:
+    return preprocess_text(text)
+
+
+def preprocess_text(text: str) -> str:
     normalized = text.lower()
     normalized = normalized.translate(str.maketrans("", "", string.punctuation))
     normalized = re.sub(r"\s+", " ", normalized).strip()
 
     stopword_set = get_stopwords()
-    words = [word for word in normalized.split() if word not in stopword_set]
+    tokens = tokenize_text(normalized)
+    words = [word for word in tokens if word not in stopword_set]
 
     return " ".join(words)
+
+
+def tokenize_text(text: str) -> list[str]:
+    try:
+        return nltk.word_tokenize(text)
+    except LookupError:
+        try:
+            nltk.download("punkt", quiet=True)
+            return nltk.word_tokenize(text)
+        except Exception:
+            return re.findall(r"[a-zA-Z][a-zA-Z0-9']*", text)
+    except Exception:
+        return re.findall(r"[a-zA-Z][a-zA-Z0-9']*", text)
 
 
 def get_stopwords() -> set[str]:

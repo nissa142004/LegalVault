@@ -17,6 +17,7 @@ def init_mongo(app):
     db = app.config["MONGO_CLIENT"][app.config["MONGO_DB_NAME"]]
     db.users.create_index("email", unique=True)
     db.documents.create_index("user_id")
+    db.documents.create_index("uploaded_by")
 
 
 def get_db():

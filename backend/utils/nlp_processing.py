@@ -61,6 +61,25 @@ def local_rake(text: str, max_keywords: int = 10) -> list[str]:
 
 
 def summarize_textrank(text: str, max_sentences: int = 3) -> str:
+    sentence_count = max(1, min(max_sentences, 20))
+    try:
+        from sumy.nlp.tokenizers import Tokenizer
+        from sumy.parsers.plaintext import PlaintextParser
+        from sumy.summarizers.text_rank import TextRankSummarizer
+
+        parser = PlaintextParser.from_string(text, Tokenizer("english"))
+        summarizer = TextRankSummarizer()
+        summary_sentences = summarizer(parser.document, sentence_count)
+        summary = " ".join(str(sentence) for sentence in summary_sentences).strip()
+        if summary:
+            return summary
+    except Exception:
+        pass
+
+    return local_textrank_summary(text, sentence_count)
+
+
+def local_textrank_summary(text: str, max_sentences: int = 3) -> str:
     sentences = split_sentences(text)
     if len(sentences) <= max_sentences:
         return " ".join(sentences)
