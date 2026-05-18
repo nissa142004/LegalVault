@@ -1,0 +1,10 @@
+Flask==3.0.3
+Flask-Cors==4.0.1
+pymongo[srv]==4.8.0
+python-dotenv==1.0.1
+PyJWT==2.8.0
+bcrypt==4.2.0
+PyPDF2==3.0.1
+python-docx==1.1.2
+nltk==3.9.1
+rake-nltk==1.0.6
