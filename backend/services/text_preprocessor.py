@@ -34,6 +34,8 @@ FALLBACK_STOPWORDS = {
 }
 
 TOKEN_PATTERN = re.compile(r"[a-zA-Z][a-zA-Z0-9']*")
+_SPACY_NLP = None
+_SPACY_LOAD_ATTEMPTED = False
 
 
 def preprocess_text(text: str, lemmatize: bool = True) -> str:
@@ -79,11 +81,19 @@ def lemmatize_tokens(tokens: list[str]) -> list[str]:
 
 
 def lemmatize_with_spacy(tokens: list[str]) -> list[str]:
-    try:
-        import spacy
+    global _SPACY_LOAD_ATTEMPTED, _SPACY_NLP
 
-        nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
-        doc = nlp(" ".join(tokens))
+    try:
+        if not _SPACY_LOAD_ATTEMPTED:
+            _SPACY_LOAD_ATTEMPTED = True
+            import spacy
+
+            _SPACY_NLP = spacy.load("en_core_web_sm", disable=["parser", "ner"])
+
+        if _SPACY_NLP is None:
+            return []
+
+        doc = _SPACY_NLP(" ".join(tokens))
         return [token.lemma_ for token in doc if token.lemma_ and token.lemma_ != "-PRON-"]
     except Exception:
         return []

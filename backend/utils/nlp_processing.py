@@ -3,6 +3,9 @@ import re
 import string
 from collections import Counter, defaultdict
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
 from utils.text_extraction import get_stopwords
 
 
@@ -174,3 +177,45 @@ def sentence_similarity(first_words: list[str], second_words: list[str]) -> floa
     normalizer = math.log(len(first_words) + 1) + math.log(len(second_words) + 1)
 
     return overlap / normalizer if normalizer else 0.0
+
+
+def rank_documents_by_tfidf(
+    query: str,
+    documents: list[dict],
+    max_results: int = 5,
+) -> list[dict]:
+    searchable_documents = [
+        document
+        for document in documents
+        if (document.get("cleaned_text") or document.get("raw_text") or "").strip()
+    ]
+    if not query.strip() or not searchable_documents:
+        return []
+
+    corpus = [
+        document.get("cleaned_text") or document.get("raw_text", "")
+        for document in searchable_documents
+    ]
+    vectorizer = TfidfVectorizer(stop_words="english")
+    try:
+        document_vectors = vectorizer.fit_transform(corpus)
+    except ValueError:
+        return []
+
+    query_vector = vectorizer.transform([query])
+    scores = cosine_similarity(query_vector, document_vectors).flatten()
+
+    ranked_matches = sorted(
+        (
+            (document, score)
+            for document, score in zip(searchable_documents, scores)
+            if score > 0
+        ),
+        key=lambda item: item[1],
+        reverse=True,
+    )
+
+    return [
+        {"document": document, "score": round(float(score), 4)}
+        for document, score in ranked_matches[:max_results]
+    ]
