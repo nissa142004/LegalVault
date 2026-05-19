@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 
 from models.document import (
     create_document,
+    delete_document_by_id,
     find_document_by_id,
     find_documents_by_user,
     serialize_document,
@@ -17,21 +18,25 @@ from models.document import (
     update_document_nlp,
 )
 from utils.auth_middleware import auth_required
-from utils.nlp_processing import extract_keywords, summarize_textrank
-from utils.text_extraction import extract_text, preprocess_text
+from utils.nlp_processing import (
+    extract_keywords,
+    rank_documents_by_tfidf,
+    summarize_textrank,
+)
+from services.text_extractor import SUPPORTED_EXTENSIONS, extract_text
+from services.text_preprocessor import preprocess_text
 
 documents_bp = Blueprint("documents", __name__)
 
-ALLOWED_EXTENSIONS = {".pdf", ".docx"}
+ALLOWED_EXTENSIONS = SUPPORTED_EXTENSIONS
 
 
 def allowed_file(filename: str) -> bool:
     return Path(filename).suffix.lower() in ALLOWED_EXTENSIONS
 
 
-@documents_bp.post("/upload")
 @auth_required
-def upload_document():
+def handle_upload_document():
     if "file" not in request.files:
         return jsonify({"message": "A file field is required."}), 400
 
@@ -72,6 +77,16 @@ def upload_document():
     return jsonify({"document": serialize_document_text(document)}), 201
 
 
+@documents_bp.post("/documents/upload")
+def upload_document():
+    return handle_upload_document()
+
+
+@documents_bp.post("/upload")
+def upload_document_legacy():
+    return handle_upload_document()
+
+
 @documents_bp.get("/documents")
 @auth_required
 def list_documents():
@@ -82,6 +97,48 @@ def list_documents():
     ), 200
 
 
+@documents_bp.get("/documents/<document_id>")
+@auth_required
+def get_document(document_id):
+    document = find_document_by_id(document_id, str(g.current_user["_id"]))
+    if not document:
+        return jsonify({"message": "Document not found."}), 404
+
+    return jsonify({"document": serialize_document(document)}), 200
+
+
+@documents_bp.post("/search")
+@auth_required
+def search_documents():
+    data = request.get_json(silent=True) or {}
+    query = str(data.get("query", "")).strip()
+    if not query:
+        return jsonify({"message": "A search query is required."}), 400
+
+    documents = find_documents_by_user(str(g.current_user["_id"]))
+    ranked_matches = rank_documents_by_tfidf(query, documents, max_results=5)
+
+    results = []
+    for match in ranked_matches:
+        document = match["document"]
+        text = document.get("cleaned_text") or document.get("raw_text", "")
+        raw_text = document.get("raw_text", text)
+        keywords = document.get("keywords") or extract_keywords(text)
+        summary = document.get("summary") or summarize_textrank(raw_text)
+
+        results.append(
+            {
+                "document_id": str(document["_id"]),
+                "title": document["filename"],
+                "similarity_score": match["score"],
+                "summary": summary,
+                "keywords": keywords,
+            }
+        )
+
+    return jsonify({"query": query, "results": results}), 200
+
+
 @documents_bp.get("/documents/<document_id>/text")
 @auth_required
 def get_document_text(document_id):
@@ -90,6 +147,26 @@ def get_document_text(document_id):
         return jsonify({"message": "Document not found."}), 404
 
     return jsonify({"document": serialize_document_text(document)}), 200
+
+
+@documents_bp.delete("/documents/<document_id>")
+@auth_required
+def delete_document(document_id):
+    document = delete_document_by_id(document_id, str(g.current_user["_id"]))
+    if not document:
+        return jsonify({"message": "Document not found."}), 404
+
+    filepath = document.get("filepath")
+    if filepath:
+        try:
+            Path(filepath).unlink(missing_ok=True)
+        except OSError:
+            current_app.logger.warning(
+                "Deleted document record but could not remove file: %s",
+                filepath,
+            )
+
+    return jsonify({"message": "Document deleted successfully."}), 200
 
 
 @documents_bp.post("/process-document/<document_id>")

@@ -15,6 +15,7 @@ def serialize_user(user: dict | None) -> dict | None:
         "id": str(user["_id"]),
         "name": user["name"],
         "email": user["email"],
+        "role": user.get("role", "user"),
     }
 
 
@@ -29,11 +30,17 @@ def find_user_by_id(user_id: str) -> dict | None:
     return users_collection().find_one({"_id": ObjectId(user_id)})
 
 
-def create_user(name: str, email: str, hashed_password: str) -> dict:
+def create_user(
+    name: str,
+    email: str,
+    hashed_password: str,
+    role: str = "user",
+) -> dict:
     user = {
         "name": name.strip(),
         "email": email.lower().strip(),
         "password": hashed_password,
+        "role": role,
     }
     result = users_collection().insert_one(user)
     user["_id"] = result.inserted_id

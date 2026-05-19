@@ -29,6 +29,8 @@ def serialize_document_text(document: dict) -> dict:
     serialized = serialize_document(document)
     serialized["raw_text"] = document.get("raw_text", document.get("extracted_text", ""))
     serialized["cleaned_text"] = document.get("cleaned_text", "")
+    serialized["keywords"] = document.get("keywords", [])
+    serialized["summary"] = document.get("summary", "")
 
     return serialized
 
@@ -80,6 +82,16 @@ def find_document_by_id(document_id: str, user_id: str) -> dict | None:
             "$or": [{"uploaded_by": user_id}, {"user_id": user_id}],
         }
     )
+
+
+def delete_document_by_id(document_id: str, user_id: str) -> dict | None:
+    document = find_document_by_id(document_id, user_id)
+    if not document:
+        return None
+
+    documents_collection().delete_one({"_id": document["_id"]})
+
+    return document
 
 
 def update_document_nlp(document_id: str, user_id: str, keywords: list[str], summary: str):

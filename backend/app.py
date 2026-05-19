@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
@@ -21,11 +21,12 @@ def create_app() -> Flask:
             r"/api/*": {"origins": app.config["CORS_ORIGINS"]},
             r"/auth/*": {"origins": app.config["CORS_ORIGINS"]},
             r"/documents.*": {"origins": app.config["CORS_ORIGINS"]},
+            r"/search": {"origins": app.config["CORS_ORIGINS"]},
             r"/upload": {"origins": app.config["CORS_ORIGINS"]},
         },
     )
 
-    JWTManager(app)
+    jwt = JWTManager(app)
     init_mongo(app)
     app.register_blueprint(status_bp, url_prefix="/api")
     app.register_blueprint(auth_bp, url_prefix="/auth")
@@ -33,6 +34,18 @@ def create_app() -> Flask:
     app.register_blueprint(documents_bp)
     register_error_handlers(app)
     app.teardown_appcontext(close_mongo)
+
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        return jsonify({"message": "Token has expired.", "error": "token_expired"}), 401
+
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error):
+        return jsonify({"message": "Invalid authentication token.", "error": "token_invalid"}), 422
+
+    @jwt.unauthorized_loader
+    def missing_token_callback(error):
+        return jsonify({"message": "Authorization token is required.", "error": "token_missing"}), 401
 
     return app
 

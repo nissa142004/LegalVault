@@ -24,25 +24,41 @@ Auth routes:
 POST http://127.0.0.1:5000/auth/register
 POST http://127.0.0.1:5000/auth/login
 GET  http://127.0.0.1:5000/auth/me
+GET  http://127.0.0.1:5000/auth/profile
 GET  http://127.0.0.1:5000/protected
 ```
+
+Registration accepts `name`, `email`, `password`, and optional `role` (`user` or `admin`). Public registrations should use `user`; registering an `admin` also requires `admin_key` matching `ADMIN_REGISTRATION_KEY`. Passwords are hashed with bcrypt, users are stored in MongoDB, and access tokens are JWTs with role claims and a configurable expiry via `JWT_ACCESS_TOKEN_EXPIRES_MINUTES`.
 
 Document routes require `Authorization: Bearer <token>`:
 
 ```text
-POST http://127.0.0.1:5000/upload
+POST http://127.0.0.1:5000/documents/upload
 GET  http://127.0.0.1:5000/documents
+GET  http://127.0.0.1:5000/documents/<document_id>
 GET  http://127.0.0.1:5000/documents/<document_id>/text
+DELETE http://127.0.0.1:5000/documents/<document_id>
 POST http://127.0.0.1:5000/process-document/<document_id>
 POST http://127.0.0.1:5000/extract-keywords/<document_id>
 POST http://127.0.0.1:5000/summarize/<document_id>
 POST http://127.0.0.1:5000/documents/<document_id>/process
+POST http://127.0.0.1:5000/search
 ```
 
-Upload requests should use `multipart/form-data` with a `file` field. PDF and DOCX files are stored in `backend/uploads`, and document metadata is saved in MongoDB with `filename`, `filepath`, `upload_date`, and `uploaded_by`.
+Upload requests should use `multipart/form-data` with a `file` field. PDF and DOCX files are stored in `backend/uploads`, and document metadata is saved in MongoDB with `filename`, `filepath`, `upload_date`, and `uploaded_by`. Upload size is limited by `MAX_UPLOAD_MB`, which defaults to 10 MB.
 
-Text extraction uses PyPDF2 for PDFs and python-docx for DOCX files. Processed document records store `raw_text` and `cleaned_text`; preprocessing lowercases text, removes punctuation, tokenizes with NLTK, and removes stopwords.
+Text extraction uses `services/text_extractor.py`: PyPDF2 for PDFs and python-docx for DOCX files. Processed document records store `raw_text` and `cleaned_text` in MongoDB. Preprocessing uses `services/text_preprocessor.py` to lowercase text, remove punctuation, tokenize with NLTK, remove stopwords, and lemmatize terms when NLTK WordNet or spaCy is available.
 
 Keyword extraction uses RAKE-NLTK on cleaned document text and stores the extracted phrases in the document's `keywords` field.
 
 Summarization uses Sumy's TextRank summarizer and stores the generated extractive summary in the document's `summary` field. Pass an optional JSON body like `{"sentence_count": 5}` to control summary length.
+
+Legal search uses scikit-learn's TF-IDF vectorizer and cosine similarity to rank the authenticated user's cleaned legal documents. Send:
+
+```json
+{
+  "query": "tenant eviction notice requirements"
+}
+```
+
+The response returns the top 5 matches with `title`, `similarity_score`, `summary`, and `keywords`.

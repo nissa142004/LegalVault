@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from datetime import timedelta
 
 from dotenv import load_dotenv
 
@@ -14,6 +15,10 @@ class Config:
         os.getenv("JWT_SECRET", "change-me-in-production"),
     )
     SECRET_KEY = JWT_SECRET_KEY
+    ADMIN_REGISTRATION_KEY = os.getenv("ADMIN_REGISTRATION_KEY")
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(
+        minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", "60"))
+    )
 
     MONGO_URI = os.getenv("MONGO_URI")
     MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "LegalVault")
@@ -21,6 +26,7 @@ class Config:
     if not upload_folder.is_absolute():
         upload_folder = BASE_DIR / upload_folder
     UPLOAD_FOLDER = str(upload_folder)
+    MAX_CONTENT_LENGTH = int(os.getenv("MAX_UPLOAD_MB", "10")) * 1024 * 1024
 
     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
     HOST = os.getenv("FLASK_HOST", "127.0.0.1")
