@@ -6,11 +6,13 @@ from models.user import create_user, find_user_by_email, serialize_user
 from utils.auth_middleware import auth_required
 from utils.passwords import check_password, hash_password
 
+
 auth_bp = Blueprint("auth", __name__)
 
 
 @auth_bp.post("/register")
 def register():
+    """Create an account and immediately return a JWT for protected routes."""
     data = request.get_json(silent=True) or {}
     name = (data.get("name") or "").strip()
     email = (data.get("email") or "").lower().strip()
@@ -26,17 +28,18 @@ def register():
         return jsonify({"message": "User with this email already exists."}), 409
 
     try:
+        # Passwords are stored as bcrypt hashes, never as plain text.
         user = create_user(name, email, hash_password(password))
     except DuplicateKeyError:
         return jsonify({"message": "User with this email already exists."}), 409
 
     token = create_access_token(identity=str(user["_id"]))
-
     return jsonify({"token": token, "user": serialize_user(user)}), 201
 
 
 @auth_bp.post("/login")
 def login():
+    """Validate credentials and return a JWT access token."""
     data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").lower().strip()
     password = data.get("password") or ""
@@ -49,11 +52,11 @@ def login():
         return jsonify({"message": "Invalid email or password."}), 401
 
     token = create_access_token(identity=str(user["_id"]))
-
     return jsonify({"token": token, "user": serialize_user(user)}), 200
 
 
 @auth_bp.get("/me")
 @auth_required
 def me():
+    """Return the currently authenticated user."""
     return jsonify({"user": serialize_user(g.current_user)}), 200
