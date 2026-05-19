@@ -1,6 +1,0 @@
-.env
-*.log
-__pycache__/
-*.py[cod]
-.venv/
-venv/
