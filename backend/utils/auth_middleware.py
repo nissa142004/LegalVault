@@ -7,7 +7,6 @@ from models.user import find_user_by_id
 
 
 def auth_required(view):
-    """Flask route decorator that validates a JWT and stores the current user."""
     @wraps(view)
     def wrapped(*args, **kwargs):
         verify_jwt_in_request()

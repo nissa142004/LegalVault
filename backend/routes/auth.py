@@ -8,7 +8,6 @@ from models.user import create_user, find_user_by_email, serialize_user
 from utils.auth_middleware import auth_required
 from utils.passwords import check_password, hash_password
 
-
 auth_bp = Blueprint("auth", __name__)
 
 ALLOWED_ROLES = {"user", "admin"}
@@ -69,7 +68,6 @@ def admin_registration_allowed(data: dict) -> bool:
 
 @auth_bp.post("/register")
 def register():
-    """Create an account and immediately return a JWT for protected routes."""
     data = request.get_json(silent=True) or {}
     payload, error = validate_auth_payload(data, require_name=True)
     if error:
@@ -82,18 +80,22 @@ def register():
         return jsonify({"message": "User with this email already exists."}), 409
 
     try:
-        user = create_user(name, email, hash_password(password))
+        user = create_user(
+            payload["name"],
+            payload["email"],
+            hash_password(payload["password"]),
+            role=payload["role"],
+        )
     except DuplicateKeyError:
         return jsonify({"message": "User with this email already exists."}), 409
 
-    token = create_access_token(identity=str(user["_id"]))
+    token = create_user_token(user)
 
     return jsonify({"token": token, "user": serialize_user(user)}), 201
 
 
 @auth_bp.post("/login")
 def login():
-    """Validate credentials and return a JWT access token."""
     data = request.get_json(silent=True) or {}
     payload, error = validate_auth_payload(data)
     if error:
@@ -103,7 +105,7 @@ def login():
     if not user or not check_password(payload["password"], user["password"]):
         return jsonify({"message": "Invalid email or password."}), 401
 
-    token = create_access_token(identity=str(user["_id"]))
+    token = create_user_token(user)
 
     return jsonify({"token": token, "user": serialize_user(user)}), 200
 
@@ -111,7 +113,6 @@ def login():
 @auth_bp.get("/me")
 @auth_required
 def me():
-    """Return the currently authenticated user."""
     return jsonify({"user": serialize_user(g.current_user)}), 200
 
 
