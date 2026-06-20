@@ -5,6 +5,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import ErrorBanner from "../components/ErrorBanner";
 import LoadingSpinner from "../components/LoadingSpinner";
+import ThemeToggle from "../components/ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 
 export default function Register() {
@@ -42,7 +43,10 @@ export default function Register() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-10 text-slate-100">
+    <main className="flex min-h-screen items-center justify-center px-4 py-10 text-slate-900 dark:text-slate-100">
+      <div className="fixed right-4 top-4">
+        <ThemeToggle compact />
+      </div>
       <motion.section
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -52,8 +56,8 @@ export default function Register() {
           <p className="text-xs font-semibold uppercase text-vault-accent">
             LegalVault
           </p>
-          <h1 className="mt-3 text-3xl font-bold text-white">Create account</h1>
-          <p className="mt-2 text-sm text-slate-400">Start organizing legal documents securely.</p>
+          <h1 className="mt-3 text-3xl font-bold text-slate-950 dark:text-white">Create account</h1>
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Start organizing legal documents securely.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,7 +92,7 @@ export default function Register() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-400">
+        <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
           Already have an account?{" "}
           <Link className="font-semibold text-vault-accent hover:text-cyan-300" to="/login">
             Login

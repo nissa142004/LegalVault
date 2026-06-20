@@ -50,12 +50,12 @@ export default function Upload() {
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <form onSubmit={handleUpload} className="panel rounded-lg p-5 sm:p-6">
           <ErrorBanner message={error} />
-          <label className="mt-4 block rounded-lg border border-dashed border-white/15 bg-vault-950/50 p-8 text-center transition hover:border-vault-accent/60">
+          <label className="mt-4 block rounded-lg border border-dashed border-slate-300 bg-slate-50/80 p-8 text-center transition hover:border-vault-accent/60 dark:border-white/15 dark:bg-vault-950/50">
             <FileUp className="mx-auto h-10 w-10 text-vault-accent" />
-            <span className="mt-4 block text-sm font-semibold text-white">
+            <span className="mt-4 block text-sm font-semibold text-slate-950 dark:text-white">
               {file ? file.name : "Choose a legal document"}
             </span>
-            <span className="mt-2 block text-xs text-slate-400">PDF and DOCX files are supported</span>
+            <span className="mt-2 block text-xs text-slate-500 dark:text-slate-400">PDF and DOCX files are supported</span>
             <input
               ref={inputRef}
               className="sr-only"
@@ -72,8 +72,8 @@ export default function Upload() {
         </form>
 
         <aside className="panel rounded-lg p-5 sm:p-6">
-          <h2 className="text-lg font-semibold text-white">Processing pipeline</h2>
-          <div className="mt-5 space-y-4 text-sm text-slate-300">
+          <h2 className="text-lg font-semibold text-slate-950 dark:text-white">Processing pipeline</h2>
+          <div className="mt-5 space-y-4 text-sm text-slate-600 dark:text-slate-300">
             <Step label="Secure upload" />
             <Step label="Text extraction" />
             <Step label="Clean legal text" />

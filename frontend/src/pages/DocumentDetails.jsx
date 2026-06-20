@@ -107,12 +107,12 @@ export default function DocumentDetails() {
           <section className="space-y-6">
             <div className="panel rounded-lg p-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/[0.06] text-vault-accent">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100 text-vault-accent dark:bg-white/[0.06]">
                   <FileText className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="font-semibold text-white">{document.filename}</h2>
-                  <p className="text-xs text-slate-400">
+                  <h2 className="font-semibold text-slate-950 dark:text-white">{document.filename}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     Uploaded {new Date(document.upload_date).toLocaleString()}
                   </p>
                 </div>
@@ -129,27 +129,27 @@ export default function DocumentDetails() {
             </InfoPanel>
 
             <div className="panel rounded-lg p-5">
-              <h2 className="font-semibold text-white">Important legal keywords</h2>
+              <h2 className="font-semibold text-slate-950 dark:text-white">Important legal keywords</h2>
               {document.keywords?.length ? (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {document.keywords.map((keyword) => (
-                    <span key={keyword} className="rounded-full bg-white/[0.06] px-3 py-1 text-xs text-slate-300">
+                    <span key={keyword} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600 dark:bg-white/[0.06] dark:text-slate-300">
                       {keyword}
                     </span>
                   ))}
                 </div>
               ) : (
-                <p className="mt-3 text-sm text-slate-400">No important legal keywords extracted yet.</p>
+                <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">No important legal keywords extracted yet.</p>
               )}
             </div>
           </section>
 
           <section className="panel rounded-lg p-5">
             <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="font-semibold text-white">Extracted text</h2>
-              <RefreshCw className="h-4 w-4 text-slate-500" />
+              <h2 className="font-semibold text-slate-950 dark:text-white">Extracted text</h2>
+              <RefreshCw className="h-4 w-4 text-slate-400 dark:text-slate-500" />
             </div>
-            <div className="max-h-[34rem] overflow-auto rounded-lg border border-white/10 bg-vault-950/60 p-4 text-sm leading-6 text-slate-300">
+            <div className="max-h-[34rem] overflow-auto rounded-lg border border-slate-200 bg-slate-50/90 p-4 text-sm leading-6 text-slate-700 dark:border-white/10 dark:bg-vault-950/60 dark:text-slate-300">
               {document.raw_text || document.cleaned_text || "No extracted text available."}
             </div>
           </section>
@@ -162,8 +162,8 @@ export default function DocumentDetails() {
 function InfoPanel({ title, empty, children }) {
   return (
     <div className="panel rounded-lg p-5">
-      <h2 className="font-semibold text-white">{title}</h2>
-      <p className="mt-3 text-sm leading-6 text-slate-300">{children || empty}</p>
+      <h2 className="font-semibold text-slate-950 dark:text-white">{title}</h2>
+      <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{children || empty}</p>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Search from "./pages/Search.jsx";
 import Upload from "./pages/Upload.jsx";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
 import "./styles.css";
 
 const router = createBrowserRouter([
@@ -36,8 +37,10 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </ThemeProvider>
   </React.StrictMode>,
 );

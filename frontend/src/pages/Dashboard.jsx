@@ -94,15 +94,15 @@ export default function Dashboard() {
           />
         ) : (
           <div className="panel overflow-hidden rounded-lg">
-            <div className="divide-y divide-white/10">
+            <div className="divide-y divide-slate-200 dark:divide-white/10">
               {documents.map((document) => (
                 <div
                   key={document.id}
-                  className="grid gap-3 p-4 transition hover:bg-white/[0.04] sm:grid-cols-[1fr_auto]"
+                  className="grid gap-3 p-4 transition hover:bg-slate-50 dark:hover:bg-white/[0.04] sm:grid-cols-[1fr_auto]"
                 >
                   <Link to={`/documents/${document.id}`} className="min-w-0">
-                    <h2 className="truncate font-semibold text-white">{document.filename}</h2>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <h2 className="truncate font-semibold text-slate-950 dark:text-white">{document.filename}</h2>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                       Uploaded {new Date(document.upload_date).toLocaleString()}
                     </p>
                   </Link>
@@ -136,11 +136,11 @@ export default function Dashboard() {
 function Metric({ icon: Icon, label, value }) {
   return (
     <div className="panel rounded-lg p-5">
-      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-white/[0.06] text-vault-accent">
+      <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-vault-accent dark:bg-white/[0.06]">
         <Icon className="h-5 w-5" />
       </div>
-      <p className="text-3xl font-bold text-white">{value}</p>
-      <p className="mt-1 text-sm text-slate-400">{label}</p>
+      <p className="text-3xl font-bold text-slate-950 dark:text-white">{value}</p>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{label}</p>
     </div>
   );
 }
@@ -150,7 +150,9 @@ function Status({ active, label }) {
     <span
       className={[
         "rounded-full px-3 py-1 font-medium",
-        active ? "bg-emerald-400/10 text-emerald-200" : "bg-white/[0.06] text-slate-400",
+        active
+          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-200"
+          : "bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-slate-400",
       ].join(" ")}
     >
       {label}
