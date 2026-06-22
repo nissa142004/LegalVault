@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { CheckCircle2, Scale, ShieldCheck, Sparkles } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
 
+import ProductLogo from "./ProductLogo";
 import ThemeToggle from "./ThemeToggle";
 
 const benefits = [
@@ -16,7 +17,7 @@ export default function AuthShell({ eyebrow, title, description, children }) {
         <div className="absolute -left-24 top-1/4 h-80 w-80 rounded-full bg-teal-400/10 blur-3xl" />
         <div className="absolute -right-20 bottom-0 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
         <div className="relative flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-teal-400 to-cyan-500 text-vault-950"><Scale className="h-5 w-5" /></div>
+          <ProductLogo className="h-14 w-14" />
           <div><p className="text-lg font-extrabold">LegalVault</p><p className="text-xs text-slate-400">Intelligent document workspace</p></div>
         </div>
         <motion.div className="relative max-w-xl" initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.55 }}>
@@ -33,7 +34,7 @@ export default function AuthShell({ eyebrow, title, description, children }) {
       <section className="relative flex min-h-screen items-center justify-center px-4 py-12 sm:px-8">
         <div className="absolute right-4 top-4 sm:right-7 sm:top-6"><ThemeToggle compact /></div>
         <motion.div className="w-full max-w-md" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}>
-          <div className="mb-8 flex items-center gap-3 lg:hidden"><div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-teal-400 to-cyan-500 text-vault-950"><Scale className="h-5 w-5" /></div><span className="font-extrabold">LegalVault</span></div>
+          <div className="mb-8 flex items-center gap-3 lg:hidden"><ProductLogo className="h-14 w-14" /><span className="font-extrabold">LegalVault</span></div>
           <p className="eyebrow">{eyebrow}</p>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-4xl">{title}</h1>
           <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">{description}</p>

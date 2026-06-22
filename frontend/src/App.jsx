@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  Scale,
   UploadCloud,
   X,
 } from "lucide-react";
@@ -13,6 +12,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
 
 import LoadingSpinner from "./components/LoadingSpinner";
+import ProductLogo from "./components/ProductLogo";
 import ThemeToggle from "./components/ThemeToggle";
 import { useAuth } from "./context/AuthContext";
 
@@ -32,7 +32,10 @@ export default function App() {
   if (booting) {
     return (
       <main className="grid min-h-screen place-items-center">
-        <LoadingSpinner label="Opening your secure workspace" />
+        <div className="flex flex-col items-center gap-4">
+          <ProductLogo className="h-20 w-20" />
+          <LoadingSpinner label="Opening your secure workspace" />
+        </div>
       </main>
     );
   }
@@ -153,9 +156,7 @@ function SidebarContent({ user, logout, desktop = false }) {
 function Brand({ compact = false }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-teal-400 to-cyan-500 text-vault-950 shadow-[0_8px_28px_rgba(45,212,191,0.25)]">
-        <Scale className="h-5 w-5" />
-      </div>
+      <ProductLogo className={compact ? "h-10 w-10" : "h-12 w-12"} decorative />
       <div>
         <p className="flex items-center gap-1.5 text-base font-extrabold tracking-tight text-slate-950 dark:text-white">
           LegalVault {!compact && <Files className="h-3.5 w-3.5 text-vault-accent" />}
