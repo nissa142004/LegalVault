@@ -62,3 +62,46 @@ Legal search uses scikit-learn's TF-IDF vectorizer and cosine similarity to rank
 ```
 
 The response returns the top 5 matches with `title`, `similarity_score`, `summary`, and `keywords`.
+
+## Legal document classification
+
+Train the TF-IDF + Multinomial Naive Bayes classifier from the project root:
+
+```powershell
+python backend\scripts\train_classifier.py --dataset "C:\path\to\legal_dataset.csv"
+```
+
+The script performs a stratified 80/20 train/test split, prints accuracy, writes the
+joblib model to `backend/ml/artifacts/legal_category_model.joblib`, and writes full
+evaluation metrics to `backend/ml/artifacts/evaluation.json`.
+
+Classify document text (this route does not require authentication):
+
+```text
+POST http://127.0.0.1:5000/predict-category
+Content-Type: application/json
+```
+
+```json
+{
+  "text": "This employment agreement describes salary, leave, and termination."
+}
+```
+
+The response includes the predicted `category`, its `confidence`, probabilities for
+all five categories, and the model version. Set `CLASSIFIER_MODEL_PATH` to use an
+artifact stored elsewhere.
+
+## Analytics dashboard
+
+The authenticated frontend dashboard loads live, user-scoped analytics from:
+
+```text
+GET http://127.0.0.1:5000/analytics/dashboard
+Authorization: Bearer <token>
+```
+
+The response includes total documents, ML category distribution, five most recent
+uploads, AI processing completion statistics, and upload counts for the last seven
+days. New uploads are categorized automatically by the saved classifier. The React
+dashboard refreshes this data every 30 seconds and also provides a manual refresh.

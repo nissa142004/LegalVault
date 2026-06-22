@@ -50,6 +50,8 @@ def serialize_document(document: dict) -> dict:
         "upload_date": upload_date.isoformat(),
         "has_raw_text": bool(document.get("raw_text") or document.get("extracted_text")),
         "has_nlp_results": bool(document.get("keywords") or document.get("summary")),
+        "category": document.get("category", "Uncategorized"),
+        "category_confidence": document.get("category_confidence"),
     }
 
 
@@ -77,6 +79,8 @@ def create_document(
     uploaded_by: str,
     raw_text: str = "",
     cleaned_text: str = "",
+    category: str = "Uncategorized",
+    category_confidence: float | None = None,
 ) -> dict:
     document = {
         "filename": filename,
@@ -85,6 +89,8 @@ def create_document(
         "upload_date": datetime.now(timezone.utc),
         "raw_text": raw_text,
         "cleaned_text": cleaned_text,
+        "category": category,
+        "category_confidence": category_confidence,
     }
     result = documents_collection().insert_one(document)
     document["_id"] = result.inserted_id

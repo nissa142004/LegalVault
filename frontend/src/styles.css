@@ -4,52 +4,52 @@
 
 :root {
   color-scheme: light;
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-  background: #f8fafc;
+  font-family: Inter, "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-synthesis: none;
+  background: #f4f7fa;
 }
 
-:root.dark {
-  color-scheme: dark;
-  background: #080b10;
-}
-
-body {
-  min-width: 320px;
-  min-height: 100vh;
-  margin: 0;
+:root.dark { color-scheme: dark; background: #080b10; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { min-width: 320px; min-height: 100vh; margin: 0; }
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
-    radial-gradient(circle at top left, rgba(79, 209, 197, 0.12), transparent 32rem),
-    linear-gradient(135deg, #f8fafc 0%, #eef6f7 45%, #e8edf5 100%);
+    radial-gradient(circle at 88% -10%, rgba(20, 184, 166, 0.11), transparent 29rem),
+    radial-gradient(circle at 5% 90%, rgba(14, 165, 233, 0.07), transparent 25rem),
+    linear-gradient(145deg, #f8fafc 0%, #f2f6f8 48%, #edf2f7 100%);
 }
-
-.dark body {
+.dark body::before {
   background:
-    radial-gradient(circle at top left, rgba(79, 209, 197, 0.08), transparent 32rem),
-    linear-gradient(135deg, #080b10 0%, #0d1118 45%, #101827 100%);
+    radial-gradient(circle at 88% -10%, rgba(20, 184, 166, 0.09), transparent 30rem),
+    radial-gradient(circle at 10% 90%, rgba(14, 165, 233, 0.06), transparent 28rem),
+    linear-gradient(145deg, #080b10 0%, #0b1119 50%, #0b1018 100%);
 }
-
-button,
-input,
-textarea {
-  font: inherit;
-}
+button, input, textarea { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+::selection { color: #061014; background: #5eead4; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { border: 3px solid transparent; border-radius: 999px; background: #94a3b8; background-clip: padding-box; }
 
 @layer components {
-  .panel {
-    @apply border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/[0.04] dark:shadow-glow;
-  }
+  .panel { @apply border border-slate-200/80 bg-white/85 shadow-[0_1px_2px_rgba(15,23,42,0.03),0_12px_30px_rgba(15,23,42,0.04)] backdrop-blur dark:border-white/[0.08] dark:bg-white/[0.035] dark:shadow-[0_18px_50px_rgba(0,0,0,0.16)]; }
+  .input { @apply w-full rounded-xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-950 outline-none transition duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-teal-400 focus:ring-4 focus:ring-teal-400/10 dark:border-white/10 dark:bg-vault-950/65 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-white/20; }
+  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-400 to-cyan-400 px-4 py-2.5 text-sm font-bold text-vault-950 shadow-[0_8px_22px_rgba(45,212,191,0.18)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(45,212,191,0.26)] focus:outline-none focus:ring-4 focus:ring-teal-400/20 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60; }
+  .btn-secondary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white focus:outline-none focus:ring-4 focus:ring-slate-300/20 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100 dark:hover:border-white/20 dark:hover:bg-white/[0.08]; }
+  .btn-quiet { @apply inline-flex min-h-9 items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold text-slate-500 transition hover:bg-slate-200/60 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white; }
+  .icon-button { @apply inline-grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white/70 text-slate-600 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.08]; }
+  .nav-item { @apply flex items-center gap-3 rounded-xl px-2.5 py-2.5 text-slate-500 transition duration-200 hover:bg-slate-100/80 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/[0.05] dark:hover:text-white; }
+  .nav-item-active { @apply bg-teal-50 text-teal-800 shadow-[inset_0_0_0_1px_rgba(20,184,166,0.12)] hover:bg-teal-50 hover:text-teal-800 dark:bg-teal-400/[0.09] dark:text-teal-200 dark:hover:bg-teal-400/[0.12] dark:hover:text-teal-100; }
+  .nav-icon { @apply grid h-9 w-9 flex-none place-items-center rounded-lg bg-slate-100 text-slate-500 transition dark:bg-white/[0.05] dark:text-slate-400; }
+  .nav-item-active .nav-icon { @apply bg-teal-400/20 text-teal-700 dark:text-teal-300; }
+  .eyebrow { @apply text-[0.68rem] font-bold uppercase tracking-[0.18em] text-teal-600 dark:text-teal-300; }
+}
 
-  .input {
-    @apply w-full rounded-lg border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-vault-accent/70 focus:ring-2 focus:ring-vault-accent/20 dark:border-white/10 dark:bg-vault-950/80 dark:text-slate-100 dark:placeholder:text-slate-500;
-  }
-
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-vault-accent px-4 py-3 text-sm font-semibold text-vault-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60;
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100 dark:hover:bg-white/[0.08];
-  }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }

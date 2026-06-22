@@ -62,3 +62,7 @@ export const documentsApi = {
   process: (documentId) => api.post(`/documents/${documentId}/process`),
   search: (query) => api.post("/search", { query }),
 };
+
+export const analyticsApi = {
+  dashboard: () => api.get("/analytics/dashboard"),
+};

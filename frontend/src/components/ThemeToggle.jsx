@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Moon, Sun } from "lucide-react";
 
 import { useTheme } from "../context/ThemeContext";
@@ -9,29 +10,13 @@ export default function ThemeToggle({ compact = false }) {
     <button
       type="button"
       onClick={toggleTheme}
-      className={[
-        "inline-flex items-center rounded-full border border-slate-200 bg-white p-1 text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-200 dark:hover:bg-white/[0.1]",
-        compact ? "gap-1" : "gap-2",
-      ].join(" ")}
+      className="relative inline-flex h-9 w-[4.25rem] items-center rounded-xl border border-slate-200 bg-slate-100 p-1 text-slate-600 transition dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300"
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
       title={isDark ? "Switch to light theme" : "Switch to dark theme"}
     >
-      <span
-        className={[
-          "flex h-7 w-7 items-center justify-center rounded-full transition",
-          !isDark ? "bg-vault-accent text-vault-950" : "text-slate-500 dark:text-slate-400",
-        ].join(" ")}
-      >
-        <Sun className="h-4 w-4" />
-      </span>
-      <span
-        className={[
-          "flex h-7 w-7 items-center justify-center rounded-full transition",
-          isDark ? "bg-vault-accent text-vault-950" : "text-slate-500 dark:text-slate-400",
-        ].join(" ")}
-      >
-        <Moon className="h-4 w-4" />
-      </span>
+      <motion.span className="absolute h-7 w-7 rounded-lg bg-white shadow-sm dark:bg-teal-400" animate={{ x: isDark ? 31 : 0 }} transition={{ type: "spring", stiffness: 420, damping: 30 }} />
+      <span className="relative z-10 grid h-7 w-7 place-items-center"><Sun className="h-3.5 w-3.5" /></span>
+      <span className="relative z-10 ml-1 grid h-7 w-7 place-items-center"><Moon className="h-3.5 w-3.5" /></span>
       {!compact ? (
         <span className="sr-only">{isDark ? "Dark theme active" : "Light theme active"}</span>
       ) : null}

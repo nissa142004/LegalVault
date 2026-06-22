@@ -26,6 +26,7 @@ from utils.nlp_processing import (
 )
 from services.text_extractor import SUPPORTED_EXTENSIONS, extract_text
 from services.text_preprocessor import preprocess_text
+from ml.classifier import ModelNotAvailableError, predict_category
 
 documents_bp = Blueprint("documents", __name__)
 
@@ -68,12 +69,26 @@ def handle_upload_document():
         file_path.unlink(missing_ok=True)
         return jsonify({"message": "Unable to extract text from this document."}), 422
 
+    category = "Uncategorized"
+    category_confidence = None
+    if raw_text.strip():
+        try:
+            classification = predict_category(
+                raw_text, current_app.config["CLASSIFIER_MODEL_PATH"]
+            )
+            category = classification["category"]
+            category_confidence = classification["confidence"]
+        except ModelNotAvailableError:
+            current_app.logger.warning("Uploaded document could not be categorized: model unavailable")
+
     document = create_document(
         filename=original_name,
         filepath=str(file_path),
         uploaded_by=str(g.current_user["_id"]),
         raw_text=raw_text,
         cleaned_text=cleaned_text,
+        category=category,
+        category_confidence=category_confidence,
     )
 
     return jsonify({"document": serialize_document_text(document)}), 201

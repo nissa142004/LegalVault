@@ -32,3 +32,10 @@ class Config:
     HOST = os.getenv("FLASK_HOST", "127.0.0.1")
     PORT = int(os.getenv("FLASK_PORT", "5000"))
     DEBUG = os.getenv("FLASK_ENV", "production").lower() == "development"
+    CLASSIFIER_MODEL_PATH = os.getenv(
+        "CLASSIFIER_MODEL_PATH",
+        str(BASE_DIR / "ml" / "artifacts" / "legal_category_model.joblib"),
+    )
+    CLASSIFIER_MAX_TEXT_LENGTH = int(
+        os.getenv("CLASSIFIER_MAX_TEXT_LENGTH", "1000000")
+    )

@@ -4,6 +4,8 @@ from flask_jwt_extended import JWTManager
 
 from models.database import close_mongo, init_mongo
 from routes.auth import auth_bp
+from routes.analytics import analytics_bp
+from routes.classification import classification_bp
 from routes.documents import documents_bp
 from routes.protected import protected_bp
 from routes.status import status_bp
@@ -24,6 +26,8 @@ def create_app() -> Flask:
             r"/extract-keywords/.*": {"origins": app.config["CORS_ORIGINS"]},
             r"/search": {"origins": app.config["CORS_ORIGINS"]},
             r"/upload": {"origins": app.config["CORS_ORIGINS"]},
+            r"/predict-category": {"origins": app.config["CORS_ORIGINS"]},
+            r"/analytics/.*": {"origins": app.config["CORS_ORIGINS"]},
         },
     )
 
@@ -31,6 +35,8 @@ def create_app() -> Flask:
     init_mongo(app)
     app.register_blueprint(status_bp, url_prefix="/api")
     app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(analytics_bp)
+    app.register_blueprint(classification_bp)
     app.register_blueprint(protected_bp)
     app.register_blueprint(documents_bp)
     register_error_handlers(app)
