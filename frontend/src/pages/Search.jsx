@@ -104,7 +104,7 @@ function SearchResult({ result }) {
         </div>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        {(result.keywords || []).slice(0, 8).map((keyword) => (
+        {(result.keywords || []).slice(0, 5).map((keyword) => (
           <span key={keyword} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600 dark:bg-white/[0.06] dark:text-slate-300">
             {keyword}
           </span>

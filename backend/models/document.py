@@ -1,12 +1,40 @@
+import re
 from datetime import datetime, timezone
 
 from bson import ObjectId
 
 from models.database import get_db
+from utils.text_extraction import get_stopwords
+
+MAX_KEYWORDS = 10
+MIN_KEYWORD_LENGTH = 3
 
 
 def documents_collection():
     return get_db().documents
+
+
+def top_keywords(document: dict) -> list[str]:
+    stopword_set = get_stopwords()
+    keywords = []
+    seen = set()
+
+    for keyword in document.get("keywords") or []:
+        words = re.findall(r"[a-zA-Z][a-zA-Z0-9']*", str(keyword).lower())
+        clean_words = [
+            word for word in words
+            if len(word) >= MIN_KEYWORD_LENGTH and word not in stopword_set
+        ]
+        phrase = " ".join(clean_words[:4])
+        if not phrase or phrase in seen:
+            continue
+
+        keywords.append(phrase)
+        seen.add(phrase)
+        if len(keywords) == MAX_KEYWORDS:
+            return keywords
+
+    return keywords
 
 
 def serialize_document(document: dict) -> dict:
@@ -29,7 +57,7 @@ def serialize_document_text(document: dict) -> dict:
     serialized = serialize_document(document)
     serialized["raw_text"] = document.get("raw_text", document.get("extracted_text", ""))
     serialized["cleaned_text"] = document.get("cleaned_text", "")
-    serialized["keywords"] = document.get("keywords", [])
+    serialized["keywords"] = top_keywords(document)
     serialized["summary"] = document.get("summary", "")
 
     return serialized
@@ -37,7 +65,7 @@ def serialize_document_text(document: dict) -> dict:
 
 def serialize_document_nlp(document: dict) -> dict:
     serialized = serialize_document(document)
-    serialized["keywords"] = document.get("keywords", [])
+    serialized["keywords"] = top_keywords(document)
     serialized["summary"] = document.get("summary", "")
 
     return serialized

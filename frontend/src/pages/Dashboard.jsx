@@ -1,4 +1,4 @@
-import { FileText, Search, Sparkles, Trash2, UploadCloud } from "lucide-react";
+import { ExternalLink, FileText, Search, Sparkles, Trash2, UploadCloud } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -12,6 +12,7 @@ export default function Dashboard() {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState("");
+  const [openingId, setOpeningId] = useState("");
   const [error, setError] = useState("");
 
   async function loadDocuments() {
@@ -47,6 +48,36 @@ export default function Dashboard() {
       setError(getApiError(err, "Unable to delete document."));
     } finally {
       setDeletingId("");
+    }
+  }
+
+  async function handleViewOriginalPdf(documentId) {
+    setOpeningId(documentId);
+    setError("");
+    const pdfWindow = window.open("", "_blank");
+
+    if (!pdfWindow) {
+      setError("Unable to open the PDF. Allow pop-ups for this site and try again.");
+      setOpeningId("");
+      return;
+    }
+
+    pdfWindow.opener = null;
+
+    try {
+      const response = await documentsApi.getOriginal(documentId);
+      const pdfBlob = new Blob([response.data], {
+        type: response.headers["content-type"] || "application/pdf",
+      });
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      pdfWindow.location.href = pdfUrl;
+      window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 60_000);
+    } catch (err) {
+      pdfWindow.close();
+      setError(getApiError(err, "Unable to open the original PDF."));
+    } finally {
+      setOpeningId("");
     }
   }
 
@@ -109,6 +140,21 @@ export default function Dashboard() {
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     <Status active={document.has_raw_text} label="Text" />
                     <Status active={document.has_nlp_results} label="NLP" />
+                    {document.filename?.toLowerCase().endsWith(".pdf") ? (
+                      <button
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-vault-accent/40 hover:text-vault-accent disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300"
+                        type="button"
+                        onClick={() => handleViewOriginalPdf(document.id)}
+                        disabled={openingId === document.id}
+                        title="View original PDF"
+                      >
+                        {openingId === document.id ? (
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
+                        ) : (
+                          <ExternalLink className="h-4 w-4" />
+                        )}
+                      </button>
+                    ) : null}
                     <button
                       className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-400/20 bg-red-500/10 text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                       type="button"

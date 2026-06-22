@@ -21,6 +21,7 @@ def create_app() -> Flask:
             r"/api/*": {"origins": app.config["CORS_ORIGINS"]},
             r"/auth/*": {"origins": app.config["CORS_ORIGINS"]},
             r"/documents.*": {"origins": app.config["CORS_ORIGINS"]},
+            r"/extract-keywords/.*": {"origins": app.config["CORS_ORIGINS"]},
             r"/search": {"origins": app.config["CORS_ORIGINS"]},
             r"/upload": {"origins": app.config["CORS_ORIGINS"]},
         },

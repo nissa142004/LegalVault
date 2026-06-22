@@ -54,6 +54,10 @@ export const documentsApi = {
   },
   get: (documentId) => api.get(`/documents/${documentId}`),
   getText: (documentId) => api.get(`/documents/${documentId}/text`),
+  getOriginal: (documentId) =>
+    api.get(`/documents/${documentId}/original`, {
+      responseType: "blob",
+    }),
   delete: (documentId) => api.delete(`/documents/${documentId}`),
   process: (documentId) => api.post(`/documents/${documentId}/process`),
   search: (query) => api.post("/search", { query }),

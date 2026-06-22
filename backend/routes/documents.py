@@ -1,7 +1,7 @@
 from pathlib import Path
 from uuid import uuid4
 
-from flask import Blueprint, current_app, g, jsonify, request
+from flask import Blueprint, current_app, g, jsonify, request, send_file
 from werkzeug.utils import secure_filename
 
 from models.document import (
@@ -12,6 +12,7 @@ from models.document import (
     serialize_document,
     serialize_document_nlp,
     serialize_document_text,
+    top_keywords,
     update_document_keywords,
     update_document_summary,
     update_document_text,
@@ -29,6 +30,7 @@ from services.text_preprocessor import preprocess_text
 documents_bp = Blueprint("documents", __name__)
 
 ALLOWED_EXTENSIONS = SUPPORTED_EXTENSIONS
+MAX_KEYWORDS = 10
 
 
 def allowed_file(filename: str) -> bool:
@@ -123,7 +125,7 @@ def search_documents():
         document = match["document"]
         text = document.get("cleaned_text") or document.get("raw_text", "")
         raw_text = document.get("raw_text", text)
-        keywords = document.get("keywords") or extract_keywords(text)
+        keywords = top_keywords(document) or extract_keywords(raw_text, max_keywords=MAX_KEYWORDS)
         summary = document.get("summary") or summarize_textrank(raw_text)
 
         results.append(
@@ -147,6 +149,28 @@ def get_document_text(document_id):
         return jsonify({"message": "Document not found."}), 404
 
     return jsonify({"document": serialize_document_text(document)}), 200
+
+
+@documents_bp.get("/documents/<document_id>/original")
+@auth_required
+def view_original_document(document_id):
+    document = find_document_by_id(document_id, str(g.current_user["_id"]))
+    if not document:
+        return jsonify({"message": "Document not found."}), 404
+
+    filepath = document.get("filepath")
+    if not filepath:
+        return jsonify({"message": "Document file path is missing."}), 422
+
+    file_path = Path(filepath)
+    if not file_path.exists():
+        return jsonify({"message": "Document file is missing from storage."}), 404
+
+    return send_file(
+        file_path,
+        as_attachment=False,
+        download_name=document.get("filename", file_path.name),
+    )
 
 
 @documents_bp.delete("/documents/<document_id>")
@@ -207,18 +231,18 @@ def extract_document_keywords(document_id):
     if not document:
         return jsonify({"message": "Document not found."}), 404
 
-    text = document.get("cleaned_text") or document.get("raw_text", "")
+    text = document.get("raw_text") or document.get("extracted_text") or document.get("cleaned_text", "")
     if not text:
         return jsonify({"message": "Document has no text to extract keywords from."}), 422
 
-    keywords = extract_keywords(text)
+    keywords = extract_keywords(text, max_keywords=MAX_KEYWORDS)
     updated_document = update_document_keywords(
         document_id=document_id,
         user_id=str(g.current_user["_id"]),
         keywords=keywords,
     )
 
-    return jsonify({"document": serialize_document_nlp(updated_document)}), 200
+    return jsonify({"keywords": top_keywords(updated_document)}), 200
 
 
 @documents_bp.post("/summarize/<document_id>")
@@ -260,14 +284,11 @@ def process_document(document_id):
     if not document:
         return jsonify({"message": "Document not found."}), 404
 
-    text = document.get("cleaned_text") or document.get(
-        "raw_text",
-        document.get("extracted_text", ""),
-    )
+    text = document.get("raw_text") or document.get("extracted_text") or document.get("cleaned_text", "")
     if not text:
         return jsonify({"message": "Document has no extracted text to process."}), 422
 
-    keywords = extract_keywords(text)
+    keywords = extract_keywords(text, max_keywords=MAX_KEYWORDS)
     summary = summarize_textrank(document.get("raw_text", text))
     updated_document = update_document_nlp(
         document_id=document_id,

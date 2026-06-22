@@ -1,4 +1,4 @@
-import { ArrowLeft, FileText, RefreshCw, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, FileText, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
@@ -15,6 +15,7 @@ export default function DocumentDetails() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [openingOriginal, setOpeningOriginal] = useState(false);
 
   async function loadDocument() {
     setError("");
@@ -46,6 +47,36 @@ export default function DocumentDetails() {
     }
   }
 
+  async function handleViewOriginalPdf() {
+    setOpeningOriginal(true);
+    setError("");
+    const pdfWindow = window.open("", "_blank");
+
+    if (!pdfWindow) {
+      setError("Unable to open the PDF. Allow pop-ups for this site and try again.");
+      setOpeningOriginal(false);
+      return;
+    }
+
+    pdfWindow.opener = null;
+
+    try {
+      const response = await documentsApi.getOriginal(documentId);
+      const pdfBlob = new Blob([response.data], {
+        type: response.headers["content-type"] || "application/pdf",
+      });
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      pdfWindow.location.href = pdfUrl;
+      window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 60_000);
+    } catch (err) {
+      pdfWindow.close();
+      setError(getApiError(err, "Unable to open the original PDF."));
+    } finally {
+      setOpeningOriginal(false);
+    }
+  }
+
   async function handleDelete() {
     const confirmed = window.confirm("Delete this uploaded document?");
     if (!confirmed) {
@@ -64,6 +95,9 @@ export default function DocumentDetails() {
       setDeleting(false);
     }
   }
+
+  const isPdf = document?.filename?.toLowerCase().endsWith(".pdf");
+  const topKeywords = document?.keywords?.slice(0, 10) || [];
 
   return (
     <>
@@ -122,6 +156,17 @@ export default function DocumentDetails() {
                 {processing ? <LoadingSpinner label="Processing" /> : <Sparkles className="h-4 w-4" />}
                 {!processing ? "Generate summary and legal keywords" : null}
               </button>
+              {isPdf ? (
+                <button
+                  className="btn-secondary mt-3 w-full"
+                  onClick={handleViewOriginalPdf}
+                  disabled={openingOriginal}
+                  type="button"
+                >
+                  {openingOriginal ? <LoadingSpinner label="Opening" /> : <ExternalLink className="h-4 w-4" />}
+                  {!openingOriginal ? "View original PDF" : null}
+                </button>
+              ) : null}
             </div>
 
             <InfoPanel title="Summary" empty="No summary generated yet.">
@@ -130,9 +175,9 @@ export default function DocumentDetails() {
 
             <div className="panel rounded-lg p-5">
               <h2 className="font-semibold text-slate-950 dark:text-white">Important legal keywords</h2>
-              {document.keywords?.length ? (
+              {topKeywords.length ? (
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {document.keywords.map((keyword) => (
+                  {topKeywords.map((keyword) => (
                     <span key={keyword} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600 dark:bg-white/[0.06] dark:text-slate-300">
                       {keyword}
                     </span>

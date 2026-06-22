@@ -1,71 +1,156 @@
 import math
 import re
-import string
-from collections import Counter, defaultdict
+from collections import Counter
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from utils.text_extraction import get_stopwords
 
+MAX_KEYWORDS = 10
+MIN_KEYWORD_LENGTH = 3
+MAX_PHRASE_WORDS = 4
+LEGAL_KEYWORD_BOOSTS = {
+    "agreement",
+    "arbitration",
+    "breach",
+    "clause",
+    "claim",
+    "confidentiality",
+    "consideration",
+    "contract",
+    "court",
+    "damages",
+    "defendant",
+    "dispute",
+    "indemnity",
+    "injunction",
+    "jurisdiction",
+    "lease",
+    "liability",
+    "license",
+    "notice",
+    "obligation",
+    "party",
+    "payment",
+    "plaintiff",
+    "provision",
+    "remedy",
+    "rights",
+    "section",
+    "statute",
+    "tenant",
+    "term",
+    "termination",
+    "warranty",
+}
 
-def extract_keywords(text: str, max_keywords: int = 10) -> list[str]:
-    try:
-        from rake_nltk import Rake
-
-        # NLP technique: RAKE (Rapid Automatic Keyword Extraction) scores candidate phrases.
-        rake = Rake(stopwords=get_stopwords(), punctuations=string.punctuation)
-        rake.extract_keywords_from_text(text)
-        return rake.get_ranked_phrases()[:max_keywords]
-    except Exception:
-        # Fallback keeps keyword extraction working when rake-nltk resources are unavailable.
-        return local_rake(text, max_keywords)
+# Frequent document furniture carries little meaning and otherwise tends to dominate
+# contracts.  These supplement NLTK's general English stopword list.
+RAKE_NOISE_WORDS = {
+    "article", "date", "document", "hereby", "herein", "hereof", "hereto",
+    "including", "page", "paragraph", "party", "parties", "remains", "said",
+    "section", "shall", "thereof", "thereto", "undersigned", "whereas", "within",
+}
 
 
-def local_rake(text: str, max_keywords: int = 10) -> list[str]:
-    stopword_set = get_stopwords()
-    # NLP preprocessing: regex tokenization turns text into lowercase word tokens.
-    words = re.findall(r"[a-zA-Z][a-zA-Z0-9']*", text.lower())
-    phrases = []
-    current_phrase = []
+def extract_keywords(text: str, max_keywords: int = MAX_KEYWORDS) -> list[str]:
+    """Return a score-ranked, de-duplicated list of short legal key phrases."""
+    keyword_limit = max(1, min(max_keywords, MAX_KEYWORDS))
+    if not text or not text.strip():
+        return []
 
-    # RAKE candidate generation: stopwords split the text into keyword phrases.
-    for word in words:
-        if word in stopword_set:
-            if current_phrase:
-                phrases.append(current_phrase)
-                current_phrase = []
-        else:
-            current_phrase.append(word)
+    candidates = _rake_candidates(text)
+    if not candidates:
+        return []
 
-    if current_phrase:
-        phrases.append(current_phrase)
-
-    # RAKE scoring: word degree and frequency estimate phrase importance.
-    frequency = Counter(word for phrase in phrases for word in phrase)
+    frequency = Counter(word for phrase in candidates for word in phrase)
     degree = Counter()
-    for phrase in phrases:
-        phrase_degree = max(len(phrase) - 1, 0)
+    for phrase in candidates:
         for word in phrase:
-            degree[word] += phrase_degree
+            degree[word] += len(phrase) - 1
 
     word_scores = {
-        word: (degree[word] + frequency[word]) / frequency[word]
-        for word in frequency
+        word: (degree[word] + count) / count for word, count in frequency.items()
     }
-
-    phrase_scores = defaultdict(float)
-    for phrase in phrases:
-        phrase_text = " ".join(phrase)
-        phrase_scores[phrase_text] += sum(word_scores[word] for word in phrase)
+    phrase_frequency = Counter(candidates)
+    phrase_scores = {}
+    for phrase, occurrences in phrase_frequency.items():
+        legal_hits = sum(word in LEGAL_KEYWORD_BOOSTS for word in phrase)
+        # RAKE score plus modest legal-domain and repeated-phrase boosts. The
+        # logarithm prevents boilerplate repetition from overwhelming relevance.
+        score = sum(word_scores[word] for word in phrase)
+        score *= 1 + (0.20 * legal_hits) + (0.10 * math.log1p(occurrences - 1))
+        phrase_scores[phrase] = score
 
     ranked_phrases = sorted(
-        phrase_scores.items(),
-        key=lambda item: item[1],
+        phrase_scores,
+        key=lambda phrase: (phrase_scores[phrase], phrase_frequency[phrase], len(phrase)),
         reverse=True,
     )
 
-    return [phrase for phrase, score in ranked_phrases[:max_keywords]]
+    keywords = []
+    selected_tokens = []
+    for phrase in ranked_phrases:
+        normalized = " ".join(phrase)
+        canonical = {_singularize(word) for word in phrase}
+        if any(_is_near_duplicate(canonical, previous) for previous in selected_tokens):
+            continue
+        keywords.append(normalized)
+        selected_tokens.append(canonical)
+        if len(keywords) >= keyword_limit:
+            break
+
+    return keywords
+
+
+def _rake_candidates(text: str) -> list[tuple[str, ...]]:
+    """Split text on stopwords/punctuation and retain useful 1-4 word phrases."""
+    stopwords = get_stopwords() | RAKE_NOISE_WORDS
+    tokens = re.findall(r"[a-zA-Z][a-zA-Z0-9'\-]*|[.!?;,:()\[\]{}\n]", text.lower())
+    phrases = []
+    current = []
+
+    def flush():
+        if not current:
+            return
+        # Long runs are usually headings or malformed PDF text; bounded windows
+        # preserve useful phrases without emitting noisy sentence fragments.
+        if len(current) <= MAX_PHRASE_WORDS:
+            phrases.append(tuple(current))
+        else:
+            for size in range(2, MAX_PHRASE_WORDS + 1):
+                phrases.extend(tuple(current[i:i + size]) for i in range(len(current) - size + 1))
+        current.clear()
+
+    for token in tokens:
+        cleaned = token.strip("-'")
+        if (
+            not cleaned
+            or not cleaned[0].isalpha()
+            or cleaned in stopwords
+            or len(cleaned) < MIN_KEYWORD_LENGTH
+        ):
+            flush()
+        else:
+            current.append(cleaned)
+    flush()
+    return phrases
+
+
+def _singularize(word: str) -> str:
+    if len(word) > 4 and word.endswith("ies"):
+        return word[:-3] + "y"
+    if len(word) > 4 and word.endswith("s") and not word.endswith("ss"):
+        return word[:-1]
+    return word
+
+
+def _is_near_duplicate(candidate: set[str], selected: set[str]) -> bool:
+    if candidate == selected:
+        return True
+    overlap = len(candidate & selected) / max(len(candidate | selected), 1)
+    return overlap >= 0.8
 
 
 def summarize_textrank(text: str, max_sentences: int = 3) -> str:

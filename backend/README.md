@@ -49,7 +49,7 @@ Upload requests should use `multipart/form-data` with a `file` field. PDF and DO
 
 Text extraction uses `services/text_extractor.py`: PyPDF2 for PDFs and python-docx for DOCX files. Processed document records store `raw_text` and `cleaned_text` in MongoDB. Preprocessing uses `services/text_preprocessor.py` to lowercase text, remove punctuation, tokenize with NLTK, remove stopwords, and lemmatize terms when NLTK WordNet or spaCy is available.
 
-Keyword extraction uses RAKE-NLTK on cleaned document text and stores the extracted phrases in the document's `keywords` field.
+Keyword extraction uses legal-domain RAKE scoring on the original document text, removes boilerplate and near-duplicates, and stores up to 10 short ranked phrases in the document's `keywords` field. `POST /extract-keywords/<document_id>` returns `{"keywords": [...]}`.
 
 Summarization uses Sumy's TextRank summarizer and stores the generated extractive summary in the document's `summary` field. Pass an optional JSON body like `{"sentence_count": 5}` to control summary length.
 
