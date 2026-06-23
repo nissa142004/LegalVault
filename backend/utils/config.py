@@ -36,6 +36,10 @@ class Config:
         "CLASSIFIER_MODEL_PATH",
         str(BASE_DIR / "ml" / "artifacts" / "legal_category_model.joblib"),
     )
+    CLASSIFIER_METRICS_PATH = os.getenv(
+        "CLASSIFIER_METRICS_PATH",
+        str(BASE_DIR / "ml" / "artifacts" / "evaluation.json"),
+    )
     CLASSIFIER_MAX_TEXT_LENGTH = int(
         os.getenv("CLASSIFIER_MAX_TEXT_LENGTH", "1000000")
     )

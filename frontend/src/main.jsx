@@ -6,6 +6,7 @@ import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import DocumentDetails from "./pages/DocumentDetails.jsx";
+import Evaluation from "./pages/Evaluation.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Search from "./pages/Search.jsx";
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
       { path: "dashboard", element: <Dashboard /> },
       { path: "upload", element: <Upload /> },
       { path: "search", element: <Search /> },
+      { path: "evaluation", element: <Evaluation /> },
       { path: "documents/:documentId", element: <DocumentDetails /> },
     ],
   },

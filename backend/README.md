@@ -105,3 +105,135 @@ The response includes total documents, ML category distribution, five most recen
 uploads, AI processing completion statistics, and upload counts for the last seven
 days. New uploads are categorized automatically by the saved classifier. The React
 dashboard refreshes this data every 30 seconds and also provides a manual refresh.
+
+## Advanced AI intelligence upgrade
+
+Updated architecture:
+
+```text
+backend/
+  ml/classifier.py              cached trained TF-IDF + MultinomialNB inference
+  services/similarity.py        reusable TF-IDF index cache + cosine ranking
+  services/evaluation.py        classification metrics + ROUGE/compression metrics
+  routes/documents.py           upload, smart search, recommendation APIs
+  routes/analytics.py           dashboard and model evaluation APIs
+  models/document.py            MongoDB document schema/serialization helpers
+  utils/nlp_processing.py       RAKE-style keywords and TextRank summarization
+```
+
+MongoDB document records now store AI metadata automatically during upload:
+
+```json
+{
+  "filename": "employment.pdf",
+  "filepath": "backend/uploads/<uuid>.pdf",
+  "uploaded_by": "<user_id>",
+  "raw_text": "...",
+  "cleaned_text": "...",
+  "predicted_category": "Employment",
+  "confidence_score": 0.92,
+  "classification_status": "assigned",
+  "classification_warning": null,
+  "top_predictions": [
+    {"category": "Employment", "probability": 0.92, "percentage": 92.0}
+  ],
+  "keywords": ["termination clause", "salary payment"],
+  "summary": "...",
+  "upload_date": "2026-06-23T...",
+  "updated_at": "2026-06-23T..."
+}
+```
+
+Low-confidence behavior: if classifier confidence is below `50%`, upload stores
+`predicted_category` as `Uncategorized`, sets `classification_status` to
+`manual_review`, keeps the confidence/top-three predictions for review, and
+returns a warning such as `Low confidence prediction (45%). Manual review recommended.`
+
+New and enhanced APIs:
+
+```text
+POST /predict-category
+```
+
+Returns `predicted_category`, `confidence_score`, `confidence_percentage`,
+`top_predictions`, all class `probabilities`, `is_low_confidence`, and `warning`.
+
+```text
+POST /documents/upload
+```
+
+Runs extraction, preprocessing, classification, keyword extraction, TextRank
+summary, metadata storage, and top-5 similar document recommendation in one
+authenticated upload flow.
+
+```text
+GET /documents/<document_id>/recommendations?same_category=true
+GET /documents/<document_id>/recommendations?same_category=false
+GET /documents/<document_id>/recommendations?category=Contract
+```
+
+Returns top similar documents ranked by TF-IDF cosine similarity with
+`document_name` and `similarity_percentage`.
+
+```text
+POST /search
+```
+
+Smart search now classifies the query first. If confidence is strong, TF-IDF
+cosine ranking is restricted to the predicted category; otherwise it searches all
+user documents.
+
+```text
+GET /analytics/evaluation
+GET /analytics/evaluation/classification
+GET /analytics/evaluation/summarization
+```
+
+Classification metrics return accuracy, precision, recall, F1-score,
+classification report, labels, and confusion matrix from
+`ml/artifacts/evaluation.json`. Summarization metrics return ROUGE-1, ROUGE-L
+when documents include `reference_summary` or `gold_summary`, plus compression
+ratio for generated summaries.
+
+Integration steps:
+
+1. Train or retrain the classifier with `python backend\scripts\train_classifier.py --dataset "C:\path\to\legal_dataset.csv"`.
+2. Start Flask after confirming `.env` has `MONGO_URI`; optionally set `CLASSIFIER_MODEL_PATH` and `CLASSIFIER_METRICS_PATH`.
+3. Upload PDFs/DOCX through `POST /documents/upload`; no separate keyword or summary call is required for new documents.
+4. Use `classification_status == "manual_review"` in admin/reviewer UI to queue uncertain documents.
+5. Use `/documents/<id>/recommendations` on the document detail screen for related-document cards.
+6. Replace plain search result calls with the enhanced `/search` response and show `category_filter` when available.
+7. Build the evaluation dashboard from `/analytics/evaluation`: charts for confusion matrix and class metrics, plus summary compression/ROUGE cards.
+
+React integration mapping:
+
+```text
+Upload success modal/card:
+  response.document.predicted_category
+  response.classification.confidence_percentage
+  response.classification.top_predictions
+  response.classification.warning
+  response.similar_documents
+
+Document list/detail:
+  document.predicted_category
+  document.confidence_score
+  document.classification_status
+  document.keywords
+  document.summary
+
+Smart search page:
+  response.query_classification.predicted_category
+  response.category_filter
+  response.results[].similarity_percentage
+
+Recommendation panel:
+  GET /documents/<id>/recommendations
+  recommendations[].document_name
+  recommendations[].similarity_percentage
+
+Evaluation dashboard:
+  classification.accuracy / precision / recall / f1_score
+  classification.confusion_matrix + labels
+  summarization.rouge_1 / rouge_l / compression_ratio
+```

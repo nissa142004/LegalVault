@@ -42,6 +42,13 @@ def serialize_document(document: dict) -> dict:
     if upload_date.tzinfo is None:
         upload_date = upload_date.replace(tzinfo=timezone.utc)
 
+    predicted_category = (
+        document.get("predicted_category")
+        or document.get("category")
+        or "Uncategorized"
+    )
+    confidence_score = document.get("confidence_score", document.get("category_confidence"))
+
     return {
         "id": str(document["_id"]),
         "filename": document["filename"],
@@ -50,8 +57,13 @@ def serialize_document(document: dict) -> dict:
         "upload_date": upload_date.isoformat(),
         "has_raw_text": bool(document.get("raw_text") or document.get("extracted_text")),
         "has_nlp_results": bool(document.get("keywords") or document.get("summary")),
-        "category": document.get("category", "Uncategorized"),
-        "category_confidence": document.get("category_confidence"),
+        "category": predicted_category,
+        "predicted_category": predicted_category,
+        "confidence_score": confidence_score,
+        "category_confidence": confidence_score,
+        "classification_status": document.get("classification_status", "assigned"),
+        "classification_warning": document.get("classification_warning"),
+        "top_predictions": document.get("top_predictions", []),
     }
 
 
@@ -79,18 +91,36 @@ def create_document(
     uploaded_by: str,
     raw_text: str = "",
     cleaned_text: str = "",
-    category: str = "Uncategorized",
+    predicted_category: str | None = None,
+    confidence_score: float | None = None,
+    keywords: list[str] | None = None,
+    summary: str = "",
+    classification_status: str = "assigned",
+    classification_warning: str | None = None,
+    top_predictions: list[dict] | None = None,
+    category: str | None = None,
     category_confidence: float | None = None,
 ) -> dict:
+    now = datetime.now(timezone.utc)
+    final_confidence = confidence_score if confidence_score is not None else category_confidence
+    final_category = predicted_category or category or "Uncategorized"
     document = {
         "filename": filename,
         "filepath": filepath,
         "uploaded_by": uploaded_by,
-        "upload_date": datetime.now(timezone.utc),
+        "upload_date": now,
+        "updated_at": now,
         "raw_text": raw_text,
         "cleaned_text": cleaned_text,
-        "category": category,
-        "category_confidence": category_confidence,
+        "predicted_category": final_category,
+        "confidence_score": final_confidence,
+        "category": final_category,
+        "category_confidence": final_confidence,
+        "classification_status": classification_status,
+        "classification_warning": classification_warning,
+        "top_predictions": top_predictions or [],
+        "keywords": keywords or [],
+        "summary": summary,
     }
     result = documents_collection().insert_one(document)
     document["_id"] = result.inserted_id
@@ -137,7 +167,13 @@ def update_document_nlp(document_id: str, user_id: str, keywords: list[str], sum
             "_id": ObjectId(document_id),
             "$or": [{"uploaded_by": user_id}, {"user_id": user_id}],
         },
-        {"$set": {"keywords": keywords, "summary": summary}},
+        {
+            "$set": {
+                "keywords": keywords,
+                "summary": summary,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        },
     )
 
     return find_document_by_id(document_id, user_id)
@@ -156,7 +192,7 @@ def update_document_keywords(
             "_id": ObjectId(document_id),
             "$or": [{"uploaded_by": user_id}, {"user_id": user_id}],
         },
-        {"$set": {"keywords": keywords}},
+        {"$set": {"keywords": keywords, "updated_at": datetime.now(timezone.utc)}},
     )
 
     return find_document_by_id(document_id, user_id)
@@ -180,6 +216,7 @@ def update_document_summary(
             "$set": {
                 "summary": summary,
                 "summary_sentence_count": summary_sentence_count,
+                "updated_at": datetime.now(timezone.utc),
             }
         },
     )
@@ -201,7 +238,13 @@ def update_document_text(
             "_id": ObjectId(document_id),
             "$or": [{"uploaded_by": user_id}, {"user_id": user_id}],
         },
-        {"$set": {"raw_text": raw_text, "cleaned_text": cleaned_text}},
+        {
+            "$set": {
+                "raw_text": raw_text,
+                "cleaned_text": cleaned_text,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        },
     )
 
     return find_document_by_id(document_id, user_id)

@@ -61,8 +61,13 @@ export const documentsApi = {
   delete: (documentId) => api.delete(`/documents/${documentId}`),
   process: (documentId) => api.post(`/documents/${documentId}/process`),
   search: (query) => api.post("/search", { query }),
+  recommendations: (documentId, options = {}) =>
+    api.get(`/documents/${documentId}/recommendations`, { params: options }),
 };
 
 export const analyticsApi = {
   dashboard: () => api.get("/analytics/dashboard"),
+  evaluation: () => api.get("/analytics/evaluation"),
+  classificationEvaluation: () => api.get("/analytics/evaluation/classification"),
+  summarizationEvaluation: () => api.get("/analytics/evaluation/summarization"),
 };

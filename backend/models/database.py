@@ -18,6 +18,8 @@ def init_mongo(app):
     db.users.create_index("email", unique=True)
     db.documents.create_index("user_id")
     db.documents.create_index("uploaded_by")
+    db.documents.create_index([("uploaded_by", 1), ("predicted_category", 1)])
+    db.documents.create_index([("uploaded_by", 1), ("classification_status", 1)])
 
 
 def get_db():

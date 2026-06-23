@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  BarChart3,
   FileSearch,
   Files,
   LayoutDashboard,
@@ -20,6 +21,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", description: "Workspace overview", icon: LayoutDashboard },
   { to: "/upload", label: "Upload", description: "Add a legal document", icon: UploadCloud },
   { to: "/search", label: "Search", description: "Find clauses and matters", icon: FileSearch },
+  { to: "/evaluation", label: "Evaluation", description: "Model quality metrics", icon: BarChart3 },
 ];
 
 export default function App() {
