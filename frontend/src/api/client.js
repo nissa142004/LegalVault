@@ -37,8 +37,11 @@ export function clearToken() {
 export const authApi = {
   login: (payload) => api.post("/auth/login", payload),
   register: (payload) => api.post("/auth/register", payload),
+  forgotPassword: (payload) => api.post("/auth/forgot-password", payload),
+  resetPassword: (payload) => api.post("/auth/reset-password", payload),
   me: () => api.get("/auth/me"),
   profile: () => api.get("/auth/profile"),
+  updateProfile: (payload) => api.patch("/auth/profile", payload),
 };
 
 export const documentsApi = {
@@ -60,6 +63,7 @@ export const documentsApi = {
     }),
   delete: (documentId) => api.delete(`/documents/${documentId}`),
   process: (documentId) => api.post(`/documents/${documentId}/process`),
+  summarize: (documentId, sentenceCount = 3) => api.post(`/documents/${documentId}/summarize`, { sentence_count: sentenceCount }),
   search: (query) => api.post("/search", { query }),
   recommendations: (documentId, options = {}) =>
     api.get(`/documents/${documentId}/recommendations`, { params: options }),
@@ -67,7 +71,4 @@ export const documentsApi = {
 
 export const analyticsApi = {
   dashboard: () => api.get("/analytics/dashboard"),
-  evaluation: () => api.get("/analytics/evaluation"),
-  classificationEvaluation: () => api.get("/analytics/evaluation/classification"),
-  summarizationEvaluation: () => api.get("/analytics/evaluation/summarization"),
 };

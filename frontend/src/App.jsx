@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  BarChart3,
   FileSearch,
   Files,
   LayoutDashboard,
   LogOut,
   Menu,
   UploadCloud,
+  UserRound,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -21,7 +21,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", description: "Workspace overview", icon: LayoutDashboard },
   { to: "/upload", label: "Upload", description: "Add a legal document", icon: UploadCloud },
   { to: "/search", label: "Search", description: "Find clauses and matters", icon: FileSearch },
-  { to: "/evaluation", label: "Evaluation", description: "Model quality metrics", icon: BarChart3 },
+  { to: "/profile", label: "Profile", description: "Professional account details", icon: UserRound },
 ];
 
 export default function App() {

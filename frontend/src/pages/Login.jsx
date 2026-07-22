@@ -28,6 +28,7 @@ export default function Login() {
         <ErrorBanner message={error} />
         <Field label="Email address" icon={Mail}><input className="input pl-11" type="email" autoComplete="email" placeholder="name@firm.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></Field>
         <Field label="Password" icon={LockKeyhole}><input className="input pl-11" type="password" autoComplete="current-password" placeholder="Enter your password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></Field>
+        <div className="-mt-2 text-right"><Link className="text-sm font-semibold text-teal-600 hover:text-teal-500 dark:text-teal-300" to="/forgot-password">Forgot password?</Link></div>
         <button className="btn-primary w-full" type="submit" disabled={loading}>{loading ? <LoadingSpinner label="Signing in" /> : <><LockKeyhole className="h-4 w-4" /> Sign in securely</>}</button>
       </form>
       <p className="mt-7 text-center text-sm text-slate-500 dark:text-slate-400">New to LegalVault? <Link className="font-bold text-teal-600 hover:text-teal-500 dark:text-teal-300" to="/register">Create an account</Link></p>

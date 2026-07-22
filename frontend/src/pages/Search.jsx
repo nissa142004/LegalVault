@@ -137,7 +137,7 @@ function SearchResult({ result }) {
           <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{result.summary}</p>
         </div>
         <div className="flex flex-none flex-col items-start gap-2 sm:items-end">
-          <div className="rounded-lg border border-vault-accent/20 bg-vault-accent/10 px-3 py-2 text-sm font-bold text-vault-accent">
+          <div className="rounded-lg border border-teal-300 bg-teal-50 px-3 py-2 text-sm font-bold text-teal-800 dark:border-vault-accent/20 dark:bg-vault-accent/10 dark:text-vault-accent">
             {result.similarity_percentage ?? Math.round(result.similarity_score * 100)}%
           </div>
           {result.predicted_category ? (

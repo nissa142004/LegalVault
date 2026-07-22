@@ -14,7 +14,7 @@ export default function DocumentDetails() {
   const [recommendations, setRecommendations] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
+  const [summarizing, setSummarizing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [openingOriginal, setOpeningOriginal] = useState(false);
 
@@ -40,17 +40,18 @@ export default function DocumentDetails() {
     loadDocument();
   }, [documentId]);
 
-  async function handleProcess() {
-    setProcessing(true);
+  async function handleGenerateSummary() {
+    if (document?.summary_generated) return;
+    setSummarizing(true);
     setError("");
 
     try {
-      await documentsApi.process(documentId);
-      await loadDocument();
+      const response = await documentsApi.summarize(documentId);
+      setDocument((current) => ({ ...current, ...response.data.document }));
     } catch (err) {
-      setError(getApiError(err, "Unable to process document."));
+      setError(getApiError(err, "Unable to generate summary."));
     } finally {
-      setProcessing(false);
+      setSummarizing(false);
     }
   }
 
@@ -120,13 +121,13 @@ export default function DocumentDetails() {
             </Link>
             {document ? (
               <button
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm font-bold text-red-700 transition hover:border-red-400 hover:bg-red-100 dark:border-red-400/25 dark:bg-red-500/10 dark:text-red-200 dark:hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
               >
                 {deleting ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-red-100 border-t-transparent" />
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-red-700 border-t-transparent dark:border-red-200 dark:border-t-transparent" />
                 ) : (
                   <Trash2 className="h-4 w-4" />
                 )}
@@ -148,7 +149,7 @@ export default function DocumentDetails() {
           <section className="space-y-6">
             <div className="panel rounded-lg p-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100 text-vault-accent dark:bg-white/[0.06]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-teal-50 text-teal-700 dark:bg-white/[0.06] dark:text-vault-accent">
                   <FileText className="h-5 w-5" />
                 </div>
                 <div>
@@ -159,9 +160,9 @@ export default function DocumentDetails() {
                 </div>
               </div>
 
-              <button className="btn-primary mt-5 w-full" onClick={handleProcess} disabled={processing}>
-                {processing ? <LoadingSpinner label="Processing" /> : <Sparkles className="h-4 w-4" />}
-                {!processing ? "Generate summary and legal keywords" : null}
+              <button className="btn-primary mt-5 w-full disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none dark:disabled:bg-white/10 dark:disabled:text-slate-400" onClick={handleGenerateSummary} disabled={summarizing || document.summary_generated}>
+                {summarizing ? <LoadingSpinner label="Generating summary" /> : <Sparkles className="h-4 w-4" />}
+                {!summarizing ? (document.summary_generated ? "Summary generated" : "Generate summary") : null}
               </button>
               {isPdf ? (
                 <button
@@ -224,7 +225,7 @@ function ClassificationPanel({ document }) {
         {needsReview ? (
           <AlertTriangle className="mt-0.5 h-5 w-5 flex-none text-amber-400" />
         ) : (
-          <Sparkles className="mt-0.5 h-5 w-5 flex-none text-vault-accent" />
+          <Sparkles className="mt-0.5 h-5 w-5 flex-none text-teal-700 dark:text-vault-accent" />
         )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -233,7 +234,7 @@ function ClassificationPanel({ document }) {
               {document.predicted_category || document.category || "Uncategorized"}
             </span>
             {confidence != null ? (
-              <span className="rounded-full bg-vault-accent/10 px-2.5 py-1 text-[0.65rem] font-bold text-vault-accent">
+              <span className="rounded-full bg-teal-50 px-2.5 py-1 text-[0.65rem] font-bold text-teal-800 dark:bg-vault-accent/10 dark:text-vault-accent">
                 {confidence}% confidence
               </span>
             ) : null}
@@ -272,7 +273,7 @@ function RecommendationsPanel({ recommendations }) {
                 <span className="block truncate font-semibold text-slate-700 dark:text-slate-200">{item.document_name}</span>
                 <span className="mt-0.5 block text-[0.68rem] text-slate-400">{item.predicted_category}</span>
               </span>
-              <span className="flex-none rounded-lg bg-vault-accent/10 px-2.5 py-1 text-xs font-bold text-vault-accent">
+              <span className="flex-none rounded-lg bg-teal-50 px-2.5 py-1 text-xs font-bold text-teal-800 dark:bg-vault-accent/10 dark:text-vault-accent">
                 {item.similarity_percentage}%
               </span>
             </Link>

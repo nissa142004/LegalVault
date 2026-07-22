@@ -69,8 +69,8 @@ export default function Dashboard() {
       <motion.div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.06 } } }}>
         <MetricCard icon={Files} label="Total documents" value={data?.total_documents || 0} note="In your secure vault" tone="teal" />
         <MetricCard icon={FileCheck2} label="Text extracted" value={data?.processing?.text_extracted || 0} note={`${percent(data?.processing?.text_extracted, data?.total_documents)}% searchable`} tone="sky" />
-        <MetricCard icon={BrainCircuit} label="AI processed" value={data?.processing?.ai_processed || 0} note={`${data?.processing?.completion_rate || 0}% completion rate`} tone="indigo" />
-        <MetricCard icon={Clock3} label="Pending analysis" value={data?.processing?.pending || 0} note="Awaiting AI processing" tone="amber" />
+        <MetricCard icon={BrainCircuit} label="Summaries generated" value={data?.processing?.ai_processed || 0} note={`${data?.processing?.completion_rate || 0}% completion rate`} tone="indigo" />
+        <MetricCard icon={Clock3} label="Pending summaries" value={data?.processing?.pending || 0} note="Awaiting summary generation" tone="amber" />
       </motion.div>
 
       {data?.total_documents === 0 ? (

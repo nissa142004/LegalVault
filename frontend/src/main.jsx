@@ -6,8 +6,10 @@ import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import DocumentDetails from "./pages/DocumentDetails.jsx";
-import Evaluation from "./pages/Evaluation.jsx";
+import Profile from "./pages/Profile.jsx";
 import Login from "./pages/Login.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 import Register from "./pages/Register.jsx";
 import Search from "./pages/Search.jsx";
 import Upload from "./pages/Upload.jsx";
@@ -23,6 +25,8 @@ const router = createBrowserRouter([
     path: "/register",
     element: <Register />,
   },
+  { path: "/forgot-password", element: <ForgotPassword /> },
+  { path: "/reset-password", element: <ResetPassword /> },
   {
     path: "/",
     element: <App />,
@@ -31,7 +35,7 @@ const router = createBrowserRouter([
       { path: "dashboard", element: <Dashboard /> },
       { path: "upload", element: <Upload /> },
       { path: "search", element: <Search /> },
-      { path: "evaluation", element: <Evaluation /> },
+      { path: "profile", element: <Profile /> },
       { path: "documents/:documentId", element: <DocumentDetails /> },
     ],
   },

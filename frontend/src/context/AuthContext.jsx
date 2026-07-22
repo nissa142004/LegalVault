@@ -56,6 +56,16 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
+  async function updateProfile(payload) {
+    try {
+      const response = await authApi.updateProfile(payload);
+      setUser(response.data.user);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiError(error, "Unable to update profile."));
+    }
+  }
+
   const value = useMemo(
     () => ({
       booting,
@@ -63,6 +73,7 @@ export function AuthProvider({ children }) {
       login,
       logout,
       register,
+      updateProfile,
       user,
     }),
     [booting, user],

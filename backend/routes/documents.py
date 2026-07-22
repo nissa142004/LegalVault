@@ -16,7 +16,6 @@ from models.document import (
     update_document_keywords,
     update_document_summary,
     update_document_text,
-    update_document_nlp,
 )
 from utils.auth_middleware import auth_required
 from utils.nlp_processing import (
@@ -91,7 +90,7 @@ def handle_upload_document():
             current_app.logger.warning("Uploaded document could not be categorized: model unavailable")
 
     keywords = extract_keywords(raw_text, max_keywords=MAX_KEYWORDS)
-    summary = summarize_textrank(raw_text) if raw_text.strip() else ""
+    summary = ""
 
     document = create_document(
         filename=original_name,
@@ -200,7 +199,7 @@ def search_documents():
         text = document.get("cleaned_text") or document.get("raw_text", "")
         raw_text = document.get("raw_text", text)
         keywords = top_keywords(document) or extract_keywords(raw_text, max_keywords=MAX_KEYWORDS)
-        summary = document.get("summary") or summarize_textrank(raw_text)
+        summary = document.get("summary", "") if document.get("summary_generated_at") else ""
 
         results.append(
             {
@@ -388,11 +387,15 @@ def extract_document_keywords(document_id):
 
 
 @documents_bp.post("/summarize/<document_id>")
+@documents_bp.post("/documents/<document_id>/summarize")
 @auth_required
 def summarize_document(document_id):
     document = find_document_by_id(document_id, str(g.current_user["_id"]))
     if not document:
         return jsonify({"message": "Document not found."}), 404
+
+    if document.get("summary_generated_at"):
+        return jsonify({"message": "A summary has already been generated for this document."}), 409
 
     data = request.get_json(silent=True) or {}
     sentence_count = data.get("sentence_count", data.get("sentences", 3))
@@ -431,12 +434,10 @@ def process_document(document_id):
         return jsonify({"message": "Document has no extracted text to process."}), 422
 
     keywords = extract_keywords(text, max_keywords=MAX_KEYWORDS)
-    summary = summarize_textrank(document.get("raw_text", text))
-    updated_document = update_document_nlp(
+    updated_document = update_document_keywords(
         document_id=document_id,
         user_id=str(g.current_user["_id"]),
         keywords=keywords,
-        summary=summary,
     )
 
     return jsonify({"document": serialize_document_nlp(updated_document)}), 200

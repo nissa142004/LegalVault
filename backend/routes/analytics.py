@@ -5,7 +5,6 @@ from flask import Blueprint, current_app, g, jsonify
 
 from ml.classifier import ModelNotAvailableError, predict_category
 from models.document import find_documents_by_user, serialize_document
-from services.evaluation import load_classification_metrics, summarization_metrics
 from utils.auth_middleware import auth_required
 
 
@@ -24,7 +23,7 @@ def dashboard_analytics():
         raw_text = document.get("raw_text") or document.get("extracted_text", "")
         if raw_text:
             extracted_count += 1
-        if document.get("keywords") or document.get("summary"):
+        if document.get("summary_generated_at"):
             processed_count += 1
 
         category = document.get("category")
@@ -79,33 +78,3 @@ def dashboard_analytics():
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
     ), 200
-
-
-@analytics_bp.get("/analytics/evaluation")
-@auth_required
-def evaluation_dashboard():
-    documents = find_documents_by_user(str(g.current_user["_id"]))
-    return jsonify(
-        {
-            "classification": load_classification_metrics(
-                current_app.config["CLASSIFIER_METRICS_PATH"]
-            ),
-            "summarization": summarization_metrics(documents),
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-        }
-    ), 200
-
-
-@analytics_bp.get("/analytics/evaluation/classification")
-@auth_required
-def classification_evaluation():
-    return jsonify(
-        load_classification_metrics(current_app.config["CLASSIFIER_METRICS_PATH"])
-    ), 200
-
-
-@analytics_bp.get("/analytics/evaluation/summarization")
-@auth_required
-def summarization_evaluation():
-    documents = find_documents_by_user(str(g.current_user["_id"]))
-    return jsonify(summarization_metrics(documents)), 200

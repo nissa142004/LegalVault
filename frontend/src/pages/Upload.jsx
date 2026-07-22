@@ -50,7 +50,7 @@ export default function Upload() {
       <PageHeader
         eyebrow="Ingest"
         title="Upload document"
-        description="Upload legal PDFs and DOCX files for text extraction, summarization, keyword detection, and search."
+        description="Upload legal PDFs and DOCX files for text extraction, keyword detection, classification, and search."
       />
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -84,17 +84,17 @@ export default function Upload() {
             <Step label="Text extraction" />
             <Step label="Clean legal text" />
             <Step label="AI classification" />
-            <Step label="Summary and keywords" />
+            <Step label="Legal keyword extraction" />
             <Step label="Similar document matching" />
           </div>
 
           {uploadedDocument ? (
             <div className="mt-6 rounded-lg border border-emerald-400/20 bg-emerald-400/10 p-4">
               <div className="flex gap-3">
-                <CheckCircle2 className="h-5 w-5 flex-none text-emerald-300" />
+                <CheckCircle2 className="h-5 w-5 flex-none text-emerald-600 dark:text-emerald-300" />
                 <div>
-                  <p className="font-semibold text-emerald-100">{uploadedDocument.filename}</p>
-                  <p className="mt-1 text-sm text-emerald-100/75">Document intelligence generated successfully.</p>
+                  <p className="font-semibold text-emerald-800 dark:text-emerald-100">{uploadedDocument.filename}</p>
+                  <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-100/75">Document intelligence generated successfully.</p>
                   <Link className="btn-secondary mt-4" to={`/documents/${uploadedDocument.id}`}>
                     View details
                   </Link>

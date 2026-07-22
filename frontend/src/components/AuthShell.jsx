@@ -10,7 +10,7 @@ const benefits = [
   "Fast extraction from PDF and DOCX",
 ];
 
-export default function AuthShell({ eyebrow, title, description, children }) {
+export default function AuthShell({ eyebrow, title, description, children, wide = false }) {
   return (
     <main className="grid min-h-screen text-slate-900 dark:text-slate-100 lg:grid-cols-[1.05fr_0.95fr]">
       <section className="relative hidden overflow-hidden border-r border-slate-200/70 bg-slate-950 p-12 text-white dark:border-white/[0.08] lg:flex lg:flex-col lg:justify-between xl:p-16">
@@ -33,7 +33,7 @@ export default function AuthShell({ eyebrow, title, description, children }) {
 
       <section className="relative flex min-h-screen items-center justify-center px-4 py-12 sm:px-8">
         <div className="absolute right-4 top-4 sm:right-7 sm:top-6"><ThemeToggle compact /></div>
-        <motion.div className="w-full max-w-md" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}>
+        <motion.div className={`w-full ${wide ? "max-w-2xl" : "max-w-md"}`} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}>
           <div className="mb-8 flex items-center gap-3 lg:hidden"><ProductLogo className="h-14 w-14" /><span className="font-extrabold">LegalVault</span></div>
           <p className="eyebrow">{eyebrow}</p>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white sm:text-4xl">{title}</h1>

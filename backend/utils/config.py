@@ -16,6 +16,13 @@ class Config:
     )
     SECRET_KEY = JWT_SECRET_KEY
     ADMIN_REGISTRATION_KEY = os.getenv("ADMIN_REGISTRATION_KEY")
+    MAIL_HOST = os.getenv("MAIL_HOST", "smtp.gmail.com")
+    MAIL_PORT = int(os.getenv("MAIL_PORT", "587"))
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+    MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "LegalVault")
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+    PASSWORD_RESET_MAX_AGE_SECONDS = int(os.getenv("PASSWORD_RESET_MAX_AGE_SECONDS", "3600"))
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(
         minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", "60"))
     )

@@ -56,7 +56,8 @@ def serialize_document(document: dict) -> dict:
         "uploaded_by": document.get("uploaded_by", document.get("user_id", "")),
         "upload_date": upload_date.isoformat(),
         "has_raw_text": bool(document.get("raw_text") or document.get("extracted_text")),
-        "has_nlp_results": bool(document.get("keywords") or document.get("summary")),
+        "has_nlp_results": bool(document.get("summary_generated_at")),
+        "summary_generated": bool(document.get("summary_generated_at")),
         "category": predicted_category,
         "predicted_category": predicted_category,
         "confidence_score": confidence_score,
@@ -72,7 +73,8 @@ def serialize_document_text(document: dict) -> dict:
     serialized["raw_text"] = document.get("raw_text", document.get("extracted_text", ""))
     serialized["cleaned_text"] = document.get("cleaned_text", "")
     serialized["keywords"] = top_keywords(document)
-    serialized["summary"] = document.get("summary", "")
+    serialized["summary_generated"] = bool(document.get("summary_generated_at"))
+    serialized["summary"] = document.get("summary", "") if serialized["summary_generated"] else ""
 
     return serialized
 
@@ -80,7 +82,8 @@ def serialize_document_text(document: dict) -> dict:
 def serialize_document_nlp(document: dict) -> dict:
     serialized = serialize_document(document)
     serialized["keywords"] = top_keywords(document)
-    serialized["summary"] = document.get("summary", "")
+    serialized["summary_generated"] = bool(document.get("summary_generated_at"))
+    serialized["summary"] = document.get("summary", "") if serialized["summary_generated"] else ""
 
     return serialized
 
@@ -121,6 +124,7 @@ def create_document(
         "top_predictions": top_predictions or [],
         "keywords": keywords or [],
         "summary": summary,
+        "summary_generated_at": None,
     }
     result = documents_collection().insert_one(document)
     document["_id"] = result.inserted_id
@@ -216,6 +220,7 @@ def update_document_summary(
             "$set": {
                 "summary": summary,
                 "summary_sentence_count": summary_sentence_count,
+                "summary_generated_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc),
             }
         },

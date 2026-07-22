@@ -25,10 +25,13 @@ POST http://127.0.0.1:5000/auth/register
 POST http://127.0.0.1:5000/auth/login
 GET  http://127.0.0.1:5000/auth/me
 GET  http://127.0.0.1:5000/auth/profile
+POST http://127.0.0.1:5000/auth/forgot-password
+POST http://127.0.0.1:5000/auth/reset-password
+PATCH http://127.0.0.1:5000/auth/profile
 GET  http://127.0.0.1:5000/protected
 ```
 
-Registration accepts `name`, `email`, `password`, and optional `role` (`user` or `admin`). Public registrations should use `user`; registering an `admin` also requires `admin_key` matching `ADMIN_REGISTRATION_KEY`. Passwords are hashed with bcrypt, users are stored in MongoDB, and access tokens are JWTs with role claims and a configurable expiry via `JWT_ACCESS_TOKEN_EXPIRES_MINUTES`.
+Registration accepts `name`, `email`, `password`, optional professional profile fields (`phone`, `organization`, `job_title`, `jurisdiction`, `professional_id`), and optional `role` (`user` or `admin`). A branded welcome email is sent through the SMTP settings in `.env`. Password reset links are signed, single-use, and expire after `PASSWORD_RESET_MAX_AGE_SECONDS` (one hour by default). Public registrations should use `user`; registering an `admin` also requires `admin_key` matching `ADMIN_REGISTRATION_KEY`. Passwords are hashed with bcrypt, users are stored in MongoDB, and access tokens are JWTs with role claims and a configurable expiry via `JWT_ACCESS_TOKEN_EXPIRES_MINUTES`.
 
 Document routes require `Authorization: Bearer <token>`:
 
