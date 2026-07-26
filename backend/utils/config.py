@@ -29,6 +29,14 @@ class Config:
 
     MONGO_URI = os.getenv("MONGO_URI")
     MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "LegalVault")
+    MONGO_DNS_NAMESERVERS = [
+        server.strip()
+        for server in os.getenv(
+            "MONGO_DNS_NAMESERVERS",
+            "1.1.1.1,8.8.8.8",
+        ).split(",")
+        if server.strip()
+    ]
     upload_folder = Path(os.getenv("UPLOAD_FOLDER", str(BASE_DIR / "uploads")))
     if not upload_folder.is_absolute():
         upload_folder = BASE_DIR / upload_folder
