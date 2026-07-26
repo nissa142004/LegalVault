@@ -178,6 +178,7 @@ export default function DocumentDetails() {
             </div>
 
             <ClassificationPanel document={document} />
+            <RecordControls document={document} onSaved={setDocument} />
 
             <InfoPanel title="Summary" empty="No summary generated yet.">
               {document.summary}
@@ -255,6 +256,65 @@ function ClassificationPanel({ document }) {
       </div>
     </div>
   );
+}
+
+function RecordControls({ document, onSaved }) {
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [form, setForm] = useState({
+    client_name: document.client_name || "",
+    matter_name: document.matter_name || "",
+    matter_number: document.matter_number || "",
+    document_type: document.document_type || "",
+    document_date: document.document_date || "",
+    retention_date: document.retention_date || "",
+    confidentiality: document.confidentiality || "Internal",
+    privilege: document.privilege || "Not privileged",
+    review_status: document.review_status || "Needs review",
+    notes: document.notes || "",
+  });
+  async function save() {
+    setSaving(true); setMessage("");
+    try {
+      const response = await documentsApi.update(document.id, form);
+      onSaved(response.data.document); setEditing(false); setMessage("Record controls updated.");
+    } catch (err) { setMessage(getApiError(err, "Unable to update record controls.")); }
+    finally { setSaving(false); }
+  }
+  const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  return <div className="panel rounded-lg p-5">
+    <div className="flex items-center justify-between"><div><h2 className="font-semibold text-slate-950 dark:text-white">Matter & records controls</h2><p className="mt-1 text-xs text-slate-400">Operational metadata and information governance</p></div><button className="btn-quiet" onClick={() => setEditing(!editing)}>{editing ? "Cancel" : "Edit"}</button></div>
+    {editing ? <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <ControlInput label="Client" value={form.client_name} onChange={(v) => set("client_name", v)} />
+      <ControlInput label="Matter reference" value={form.matter_number} onChange={(v) => set("matter_number", v)} />
+      <ControlInput label="Matter name" value={form.matter_name} onChange={(v) => set("matter_name", v)} />
+      <ControlInput label="Document type" value={form.document_type} onChange={(v) => set("document_type", v)} />
+      <ControlInput label="Document date" type="date" value={form.document_date} onChange={(v) => set("document_date", v)} />
+      <ControlInput label="Retention review" type="date" value={form.retention_date} onChange={(v) => set("retention_date", v)} />
+      <ControlSelect label="Confidentiality" value={form.confidentiality} onChange={(v) => set("confidentiality", v)} options={["Public", "Internal", "Confidential", "Highly confidential"]} />
+      <ControlSelect label="Privilege" value={form.privilege} onChange={(v) => set("privilege", v)} options={["Not privileged", "Attorney-client privileged", "Attorney work product"]} />
+      <ControlSelect label="Review status" value={form.review_status} onChange={(v) => set("review_status", v)} options={["Needs review", "In review", "Approved", "Archived"]} />
+      <label className="sm:col-span-2"><span className="mb-1 block text-xs font-semibold text-slate-500">Reviewer notes</span><textarea className="input min-h-24" value={form.notes} onChange={(e) => set("notes", e.target.value)} /></label>
+      <button className="btn-primary sm:col-span-2" disabled={saving} onClick={save}>{saving ? "Saving…" : "Save record controls"}</button>
+    </div> : <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+      <RecordValue label="Client" value={document.client_name} /><RecordValue label="Matter" value={document.matter_name} />
+      <RecordValue label="Reference" value={document.matter_number} /><RecordValue label="Type" value={document.document_type} />
+      <RecordValue label="Confidentiality" value={document.confidentiality} /><RecordValue label="Privilege" value={document.privilege} />
+      <RecordValue label="Review status" value={document.review_status} /><RecordValue label="Retention review" value={document.retention_date} />
+    </div>}
+    {message && <p className="mt-3 text-xs text-teal-600 dark:text-teal-300">{message}</p>}
+  </div>;
+}
+
+function ControlInput({ label, onChange, ...props }) {
+  return <label><span className="mb-1 block text-xs font-semibold text-slate-500">{label}</span><input className="input" onChange={(e) => onChange(e.target.value)} {...props} /></label>;
+}
+function ControlSelect({ label, value, onChange, options }) {
+  return <label><span className="mb-1 block text-xs font-semibold text-slate-500">{label}</span><select className="input" value={value} onChange={(e) => onChange(e.target.value)}>{options.map((option) => <option key={option}>{option}</option>)}</select></label>;
+}
+function RecordValue({ label, value }) {
+  return <div><p className="text-slate-400">{label}</p><p className="mt-1 font-semibold text-slate-700 dark:text-slate-200">{value || "Not assigned"}</p></div>;
 }
 
 function RecommendationsPanel({ recommendations }) {

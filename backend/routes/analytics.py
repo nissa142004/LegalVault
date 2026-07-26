@@ -18,6 +18,8 @@ def dashboard_analytics():
     category_counts = Counter()
     extracted_count = 0
     processed_count = 0
+    review_counts = Counter()
+    privileged_count = 0
 
     for document in documents:
         raw_text = document.get("raw_text") or document.get("extracted_text", "")
@@ -35,6 +37,9 @@ def dashboard_analytics():
             except ModelNotAvailableError:
                 category = "Uncategorized"
         category_counts[category or "Uncategorized"] += 1
+        review_counts[document.get("review_status", "Needs review")] += 1
+        if document.get("privilege", "Not privileged") != "Not privileged":
+            privileged_count += 1
 
     total = len(documents)
     categories = [
@@ -73,6 +78,13 @@ def dashboard_analytics():
                 "completion_rate": round(
                     (processed_count / total * 100) if total else 0, 1
                 ),
+            },
+            "governance": {
+                "needs_review": review_counts["Needs review"],
+                "in_review": review_counts["In review"],
+                "approved": review_counts["Approved"],
+                "archived": review_counts["Archived"],
+                "privileged": privileged_count,
             },
             "uploads_by_day": uploads_by_day,
             "generated_at": datetime.now(timezone.utc).isoformat(),

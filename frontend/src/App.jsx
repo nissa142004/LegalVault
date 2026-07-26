@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   FileSearch,
   Files,
+  FolderKanban,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -19,6 +20,7 @@ import { useAuth } from "./context/AuthContext";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", description: "Workspace overview", icon: LayoutDashboard },
+  { to: "/documents", label: "Document register", description: "Matters, review and controls", icon: FolderKanban },
   { to: "/upload", label: "Upload", description: "Add a legal document", icon: UploadCloud },
   { to: "/search", label: "Search", description: "Find clauses and matters", icon: FileSearch },
   { to: "/profile", label: "Profile", description: "Professional account details", icon: UserRound },

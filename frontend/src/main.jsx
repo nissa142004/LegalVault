@@ -6,6 +6,7 @@ import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import DocumentDetails from "./pages/DocumentDetails.jsx";
+import Documents from "./pages/Documents.jsx";
 import Profile from "./pages/Profile.jsx";
 import Login from "./pages/Login.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "dashboard", element: <Dashboard /> },
       { path: "upload", element: <Upload /> },
+      { path: "documents", element: <Documents /> },
       { path: "search", element: <Search /> },
       { path: "profile", element: <Profile /> },
       { path: "documents/:documentId", element: <DocumentDetails /> },

@@ -16,6 +16,7 @@ from models.document import (
     update_document_keywords,
     update_document_summary,
     update_document_text,
+    update_document_metadata,
 )
 from utils.auth_middleware import auth_required
 from utils.nlp_processing import (
@@ -31,6 +32,13 @@ documents_bp = Blueprint("documents", __name__)
 
 ALLOWED_EXTENSIONS = SUPPORTED_EXTENSIONS
 MAX_KEYWORDS = 10
+METADATA_FIELDS = {
+    "matter_name", "matter_number", "client_name", "document_type",
+    "document_date", "retention_date", "notes",
+}
+ALLOWED_CONFIDENTIALITY = {"Public", "Internal", "Confidential", "Highly confidential"}
+ALLOWED_PRIVILEGE = {"Not privileged", "Attorney-client privileged", "Attorney work product"}
+ALLOWED_REVIEW_STATUS = {"Needs review", "In review", "Approved", "Archived"}
 
 
 def allowed_file(filename: str) -> bool:
@@ -91,6 +99,14 @@ def handle_upload_document():
 
     keywords = extract_keywords(raw_text, max_keywords=MAX_KEYWORDS)
     summary = ""
+    confidentiality = request.form.get("confidentiality", "Internal")
+    privilege = request.form.get("privilege", "Not privileged")
+    if confidentiality not in ALLOWED_CONFIDENTIALITY:
+        file_path.unlink(missing_ok=True)
+        return jsonify({"message": "Invalid confidentiality classification."}), 400
+    if privilege not in ALLOWED_PRIVILEGE:
+        file_path.unlink(missing_ok=True)
+        return jsonify({"message": "Invalid privilege classification."}), 400
 
     document = create_document(
         filename=original_name,
@@ -105,6 +121,12 @@ def handle_upload_document():
         classification_status=classification_status,
         classification_warning=classification_warning,
         top_predictions=top_predictions,
+        metadata={
+            **{field: request.form.get(field, "").strip() for field in METADATA_FIELDS},
+            "confidentiality": confidentiality,
+            "privilege": privilege,
+            "review_status": "Needs review",
+        },
     )
 
     all_documents = find_documents_by_user(str(g.current_user["_id"]))
@@ -163,6 +185,38 @@ def get_document(document_id):
         return jsonify({"message": "Document not found."}), 404
 
     return jsonify({"document": serialize_document(document)}), 200
+
+
+@documents_bp.patch("/documents/<document_id>")
+@auth_required
+def update_document(document_id):
+    document = find_document_by_id(document_id, str(g.current_user["_id"]))
+    if not document:
+        return jsonify({"message": "Document not found."}), 404
+
+    data = request.get_json(silent=True) or {}
+    updates = {
+        field: str(data.get(field, "")).strip()
+        for field in METADATA_FIELDS
+        if field in data
+    }
+    for field, allowed in (
+        ("confidentiality", ALLOWED_CONFIDENTIALITY),
+        ("privilege", ALLOWED_PRIVILEGE),
+        ("review_status", ALLOWED_REVIEW_STATUS),
+    ):
+        if field in data:
+            value = str(data[field]).strip()
+            if value not in allowed:
+                return jsonify({"message": f"Invalid {field.replace('_', ' ')}."}), 400
+            updates[field] = value
+
+    if not updates:
+        return jsonify({"message": "No supported metadata fields supplied."}), 400
+    updated = update_document_metadata(
+        document_id, str(g.current_user["_id"]), updates
+    )
+    return jsonify({"document": serialize_document_text(updated)}), 200
 
 
 @documents_bp.post("/search")

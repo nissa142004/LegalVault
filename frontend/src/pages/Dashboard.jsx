@@ -70,7 +70,7 @@ export default function Dashboard() {
         <MetricCard icon={Files} label="Total documents" value={data?.total_documents || 0} note="In your secure vault" tone="teal" />
         <MetricCard icon={FileCheck2} label="Text extracted" value={data?.processing?.text_extracted || 0} note={`${percent(data?.processing?.text_extracted, data?.total_documents)}% searchable`} tone="sky" />
         <MetricCard icon={BrainCircuit} label="Summaries generated" value={data?.processing?.ai_processed || 0} note={`${data?.processing?.completion_rate || 0}% completion rate`} tone="indigo" />
-        <MetricCard icon={Clock3} label="Pending summaries" value={data?.processing?.pending || 0} note="Awaiting summary generation" tone="amber" />
+        <MetricCard icon={Clock3} label="Documents for review" value={(data?.governance?.needs_review || 0) + (data?.governance?.in_review || 0)} note={`${data?.governance?.privileged || 0} privileged records`} tone="amber" />
       </motion.div>
 
       {data?.total_documents === 0 ? (

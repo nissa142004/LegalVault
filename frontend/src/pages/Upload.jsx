@@ -14,6 +14,11 @@ export default function Upload() {
   const [uploadInsight, setUploadInsight] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [metadata, setMetadata] = useState({
+    client_name: "", matter_name: "", matter_number: "", document_type: "",
+    document_date: "", retention_date: "", confidentiality: "Confidential",
+    privilege: "Not privileged",
+  });
 
   async function handleUpload(event) {
     event.preventDefault();
@@ -28,7 +33,7 @@ export default function Upload() {
     setUploadInsight(null);
 
     try {
-      const response = await documentsApi.upload(file);
+      const response = await documentsApi.upload(file, metadata);
       setUploadedDocument(response.data.document);
       setUploadInsight({
         classification: response.data.classification,
@@ -56,7 +61,17 @@ export default function Upload() {
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <form onSubmit={handleUpload} className="panel rounded-lg p-5 sm:p-6">
           <ErrorBanner message={error} />
-          <label className="mt-4 block rounded-lg border border-dashed border-slate-300 bg-slate-50/80 p-8 text-center transition hover:border-vault-accent/60 dark:border-white/15 dark:bg-vault-950/50">
+          <div className="mb-5 grid gap-4 sm:grid-cols-2">
+            <Field label="Client name" name="client_name" value={metadata.client_name} onChange={setMetadata} placeholder="Northstar Holdings" />
+            <Field label="Matter reference" name="matter_number" value={metadata.matter_number} onChange={setMetadata} placeholder="LIT-2026-0142" />
+            <Field label="Matter name" name="matter_name" value={metadata.matter_name} onChange={setMetadata} placeholder="Commercial dispute" />
+            <Field label="Document type" name="document_type" value={metadata.document_type} onChange={setMetadata} placeholder="Witness statement" />
+            <Field label="Document date" name="document_date" type="date" value={metadata.document_date} onChange={setMetadata} />
+            <Field label="Retention review" name="retention_date" type="date" value={metadata.retention_date} onChange={setMetadata} />
+            <SelectField label="Confidentiality" name="confidentiality" value={metadata.confidentiality} onChange={setMetadata} options={["Public", "Internal", "Confidential", "Highly confidential"]} />
+            <SelectField label="Legal privilege" name="privilege" value={metadata.privilege} onChange={setMetadata} options={["Not privileged", "Attorney-client privileged", "Attorney work product"]} />
+          </div>
+          <label className="block rounded-lg border border-dashed border-slate-300 bg-slate-50/80 p-8 text-center transition hover:border-vault-accent/60 dark:border-white/15 dark:bg-vault-950/50">
             <FileUp className="mx-auto h-10 w-10 text-vault-accent" />
             <span className="mt-4 block text-sm font-semibold text-slate-950 dark:text-white">
               {file ? file.name : "Choose a legal document"}
@@ -185,4 +200,12 @@ function Step({ label }) {
       <span>{label}</span>
     </div>
   );
+}
+
+function Field({ label, name, onChange, ...props }) {
+  return <label><span className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-300">{label}</span><input className="input" name={name} onChange={(event) => onChange((current) => ({ ...current, [name]: event.target.value }))} {...props} /></label>;
+}
+
+function SelectField({ label, name, value, onChange, options }) {
+  return <label><span className="mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-300">{label}</span><select className="input" value={value} onChange={(event) => onChange((current) => ({ ...current, [name]: event.target.value }))}>{options.map((option) => <option key={option}>{option}</option>)}</select></label>;
 }

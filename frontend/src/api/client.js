@@ -46,9 +46,10 @@ export const authApi = {
 
 export const documentsApi = {
   list: () => api.get("/documents"),
-  upload: (file) => {
+  upload: (file, metadata = {}) => {
     const formData = new FormData();
     formData.append("file", file);
+    Object.entries(metadata).forEach(([key, value]) => formData.append(key, value || ""));
     return api.post("/documents/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -56,6 +57,7 @@ export const documentsApi = {
     });
   },
   get: (documentId) => api.get(`/documents/${documentId}`),
+  update: (documentId, payload) => api.patch(`/documents/${documentId}`, payload),
   getText: (documentId) => api.get(`/documents/${documentId}/text`),
   getOriginal: (documentId) =>
     api.get(`/documents/${documentId}/original`, {

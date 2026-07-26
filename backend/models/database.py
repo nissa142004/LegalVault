@@ -21,6 +21,8 @@ def init_mongo(app):
     db.documents.create_index("uploaded_by")
     db.documents.create_index([("uploaded_by", 1), ("predicted_category", 1)])
     db.documents.create_index([("uploaded_by", 1), ("classification_status", 1)])
+    db.documents.create_index([("uploaded_by", 1), ("matter_number", 1)])
+    db.documents.create_index([("uploaded_by", 1), ("review_status", 1)])
 
 
 def get_db():

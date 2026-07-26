@@ -65,6 +65,20 @@ def serialize_document(document: dict) -> dict:
         "classification_status": document.get("classification_status", "assigned"),
         "classification_warning": document.get("classification_warning"),
         "top_predictions": document.get("top_predictions", []),
+        "matter_name": document.get("matter_name", ""),
+        "matter_number": document.get("matter_number", ""),
+        "client_name": document.get("client_name", ""),
+        "document_type": document.get("document_type", ""),
+        "confidentiality": document.get("confidentiality", "Internal"),
+        "privilege": document.get("privilege", "Not privileged"),
+        "review_status": document.get("review_status", "Needs review"),
+        "notes": document.get("notes", ""),
+        "document_date": document.get("document_date", ""),
+        "retention_date": document.get("retention_date", ""),
+        "updated_at": (
+            document.get("updated_at").isoformat()
+            if document.get("updated_at") else upload_date.isoformat()
+        ),
     }
 
 
@@ -103,6 +117,7 @@ def create_document(
     top_predictions: list[dict] | None = None,
     category: str | None = None,
     category_confidence: float | None = None,
+    metadata: dict | None = None,
 ) -> dict:
     now = datetime.now(timezone.utc)
     final_confidence = confidence_score if confidence_score is not None else category_confidence
@@ -125,11 +140,26 @@ def create_document(
         "keywords": keywords or [],
         "summary": summary,
         "summary_generated_at": None,
+        **(metadata or {}),
     }
     result = documents_collection().insert_one(document)
     document["_id"] = result.inserted_id
 
     return document
+
+
+def update_document_metadata(document_id: str, user_id: str, metadata: dict) -> dict | None:
+    if not ObjectId.is_valid(document_id):
+        return None
+
+    documents_collection().update_one(
+        {
+            "_id": ObjectId(document_id),
+            "$or": [{"uploaded_by": user_id}, {"user_id": user_id}],
+        },
+        {"$set": {**metadata, "updated_at": datetime.now(timezone.utc)}},
+    )
+    return find_document_by_id(document_id, user_id)
 
 
 def find_documents_by_user(user_id: str) -> list[dict]:
