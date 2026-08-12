@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
+from docs import init_api_docs
 from models.database import close_mongo, init_mongo
 from routes.auth import auth_bp
 from routes.analytics import analytics_bp
@@ -54,6 +55,9 @@ def create_app() -> Flask:
     @jwt.unauthorized_loader
     def missing_token_callback(error):
         return jsonify({"message": "Authorization token is required.", "error": "token_missing"}), 401
+
+    # Initialize after blueprints so Flasgger discovers every registered route.
+    init_api_docs(app)
 
     return app
 

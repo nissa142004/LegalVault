@@ -47,6 +47,11 @@ class Config:
     HOST = os.getenv("FLASK_HOST", "127.0.0.1")
     PORT = int(os.getenv("FLASK_PORT", "5000"))
     DEBUG = os.getenv("FLASK_ENV", "production").lower() == "development"
+    SWAGGER = {
+        "title": "LegalVault REST API",
+        "uiversion": 3,
+        "openapi": "3.0.3",
+    }
     CLASSIFIER_MODEL_PATH = os.getenv(
         "CLASSIFIER_MODEL_PATH",
         str(BASE_DIR / "ml" / "artifacts" / "legal_category_model.joblib"),

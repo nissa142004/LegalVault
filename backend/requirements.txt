@@ -1,6 +1,7 @@
 Flask==3.0.3
 Flask-Cors==4.0.1
 Flask-JWT-Extended==4.6.0
+flasgger==0.9.7.1
 pymongo[srv]==4.8.0
 python-dotenv==1.0.1
 bcrypt==4.2.0

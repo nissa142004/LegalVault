@@ -12,6 +12,49 @@ pip install -r requirements.txt
 python app.py
 ```
 
+## Interactive API documentation
+
+The backend uses Flasgger and OpenAPI 3.0.3. After starting Flask, open:
+
+```text
+Swagger UI:   http://localhost:5000/api/v1/docs
+OpenAPI JSON: http://localhost:5000/api/v1/openapi.json
+```
+
+Authorize protected operations by selecting **Authorize** and entering the JWT
+returned by `/auth/login`. Swagger UI adds the `Bearer` prefix through the
+OpenAPI HTTP bearer security scheme.
+
+The relevant project structure is:
+
+```text
+backend/
+├── app.py                 # application factory and extension registration
+├── docs/
+│   └── openapi.py         # OpenAPI components, metadata, and route discovery
+├── routes/                # HTTP routing/controllers grouped by feature
+├── models/                # MongoDB access and serialization
+├── services/              # reusable application and AI business logic
+├── utils/
+│   └── config.py          # environment and Flasgger configuration
+├── requirements.txt
+└── .env.example
+```
+
+Install only the documentation dependency in an existing environment with:
+
+```powershell
+python -m pip install flasgger==0.9.7.1
+```
+
+`init_api_docs(app)` runs after all blueprints are registered. It walks Flask's
+URL map and attaches a complete fallback operation to every route, so a new
+endpoint is automatically included in the generated JSON. For polished wording,
+add the endpoint's Flask endpoint name to `OPERATIONS` in `docs/openapi.py`. Add
+a reusable body schema to `SCHEMAS` and `JSON_BODIES` when the endpoint accepts
+JSON. Shared error responses, path parameters, JWT security, request/response
+examples, and standard status codes are generated centrally.
+
 Health check:
 
 ```text
@@ -240,3 +283,4 @@ Evaluation dashboard:
   classification.confusion_matrix + labels
   summarization.rouge_1 / rouge_l / compression_ratio
 ```
+http://localhost:5000/api/v1/docs
