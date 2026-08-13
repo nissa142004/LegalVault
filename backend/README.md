@@ -4,11 +4,16 @@ Flask backend foundation for LegalVault, with CORS, MongoDB Atlas, JWT authentic
 
 ## Setup
 
+Python 3.12 is recommended for the complete backend dependency set. Create a
+fresh virtual environment if an existing `.venv` points to a Python installation
+that has been removed.
+
 ```powershell
 cd backend
-python -m venv .venv
+py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 python app.py
 ```
 
@@ -114,12 +119,23 @@ The response returns the top 5 matches with `title`, `similarity_score`, `summar
 Train the TF-IDF + Multinomial Naive Bayes classifier from the project root:
 
 ```powershell
-python backend\scripts\train_classifier.py --dataset "C:\path\to\legal_dataset.csv"
+python backend\scripts\train_classifier.py --dataset "E:\real_legal_dataset_2000_builder\real_legal_dataset_2000_training_only.csv"
 ```
 
-The script performs a stratified 80/20 train/test split, prints accuracy, writes the
-joblib model to `backend/ml/artifacts/legal_category_model.joblib`, and writes full
-evaluation metrics to `backend/ml/artifacts/evaluation.json`.
+The script performs a reproducible, stratified 80/20 train/test split. The
+TF-IDF vectorizer and Multinomial Naive Bayes classifier are fitted only on the
+training portion. The terminal displays dataset and class counts, separate
+training and independent-test accuracy, precision, recall, F1 scores, macro and
+weighted averages, the classification report, confusion matrix, and correct and
+incorrect prediction counts. The script also writes the joblib model to
+`backend/ml/artifacts/legal_category_model.joblib` and the complete metrics to
+`backend/ml/artifacts/evaluation.json`.
+
+To display the saved metrics again from PowerShell:
+
+```powershell
+Get-Content backend\ml\artifacts\evaluation.json
+```
 
 Classify document text (this route does not require authentication):
 
@@ -243,7 +259,7 @@ ratio for generated summaries.
 
 Integration steps:
 
-1. Train or retrain the classifier with `python backend\scripts\train_classifier.py --dataset "C:\path\to\legal_dataset.csv"`.
+1. Train or retrain the classifier with `python backend\scripts\train_classifier.py --dataset "E:\real_legal_dataset_2000_builder\real_legal_dataset_2000_training_only.csv"`.
 2. Start Flask after confirming `.env` has `MONGO_URI`; optionally set `CLASSIFIER_MODEL_PATH` and `CLASSIFIER_METRICS_PATH`.
 3. Upload PDFs/DOCX through `POST /documents/upload`; no separate keyword or summary call is required for new documents.
 4. Use `classification_status == "manual_review"` in admin/reviewer UI to queue uncertain documents.
