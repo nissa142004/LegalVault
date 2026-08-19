@@ -1,6 +1,6 @@
 import { LockKeyhole, Mail } from "lucide-react";
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import AuthShell from "../components/AuthShell";
 import ErrorBanner from "../components/ErrorBanner";
@@ -8,6 +8,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { booting, isAuthenticated, login } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
@@ -19,13 +20,13 @@ export default function Login() {
 
   async function handleSubmit(event) {
     event.preventDefault(); setError(""); setLoading(true);
-    try { await login(form); navigate("/dashboard"); } catch (err) { setError(err.message); } finally { setLoading(false); }
+    try { await login(form); navigate("/dashboard", { state: { successMessage: "You have signed in successfully." } }); } catch (err) { setError(err.message); } finally { setLoading(false); }
   }
 
   return (
     <AuthShell eyebrow="Welcome back" title="Sign in to your workspace" description="Access your documents, insights, and legal research in one place.">
       <form onSubmit={handleSubmit} className="space-y-5">
-        <ErrorBanner message={error} />
+        <ErrorBanner message={error || location.state?.authMessage} />
         <Field label="Email address" icon={Mail}><input className="input pl-11" type="email" autoComplete="email" placeholder="name@firm.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></Field>
         <Field label="Password" icon={LockKeyhole}><input className="input pl-11" type="password" autoComplete="current-password" placeholder="Enter your password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></Field>
         <div className="-mt-2 text-right"><Link className="text-sm font-semibold text-teal-600 hover:text-teal-500 dark:text-teal-300" to="/forgot-password">Forgot password?</Link></div>

@@ -15,7 +15,7 @@ export default function Register() {
   if (booting) return <main className="grid min-h-screen place-items-center"><LoadingSpinner label="Checking session" /></main>;
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
   const update = (field) => (event) => setForm({ ...form, [field]: event.target.value });
-  async function handleSubmit(event) { event.preventDefault(); setError(""); if (form.password !== form.confirmPassword) { setError("Passwords do not match."); return; } setLoading(true); try { const { confirmPassword, ...payload } = form; await register(payload); navigate("/dashboard"); } catch (err) { setError(err.message); } finally { setLoading(false); } }
+  async function handleSubmit(event) { event.preventDefault(); setError(""); if (form.password !== form.confirmPassword) { setError("Passwords do not match."); return; } setLoading(true); try { const { confirmPassword, ...payload } = form; await register(payload); navigate("/dashboard", { state: { successMessage: "Your account was created successfully." } }); } catch (err) { setError(err.message); } finally { setLoading(false); } }
 
   return <AuthShell wide eyebrow="Professional registration" title="Create your LegalVault" description="Build your secure professional profile and start organizing legal knowledge.">
     <form onSubmit={handleSubmit} className="space-y-5"><ErrorBanner message={error} />

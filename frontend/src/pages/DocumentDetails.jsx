@@ -1,5 +1,5 @@
 import { AlertTriangle, ArrowLeft, ExternalLink, FileText, RefreshCw, Sparkles, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { documentsApi, getApiError } from "../api/client";
@@ -17,6 +17,8 @@ export default function DocumentDetails() {
   const [summarizing, setSummarizing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [openingOriginal, setOpeningOriginal] = useState(false);
+  const leftColumnRef = useRef(null);
+  const [leftColumnHeight, setLeftColumnHeight] = useState(null);
 
   async function loadDocument() {
     setError("");
@@ -39,6 +41,18 @@ export default function DocumentDetails() {
   useEffect(() => {
     loadDocument();
   }, [documentId]);
+
+  useEffect(() => {
+    if (!leftColumnRef.current || typeof ResizeObserver === "undefined") return undefined;
+
+    const updateHeight = () => {
+      setLeftColumnHeight(leftColumnRef.current.getBoundingClientRect().height);
+    };
+    const observer = new ResizeObserver(updateHeight);
+    updateHeight();
+    observer.observe(leftColumnRef.current);
+    return () => observer.disconnect();
+  }, [document, recommendations]);
 
   async function handleGenerateSummary() {
     if (document?.summary_generated) return;
@@ -145,8 +159,8 @@ export default function DocumentDetails() {
           <LoadingSpinner label="Loading document" />
         </div>
       ) : document ? (
-        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <section className="space-y-6">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <section ref={leftColumnRef} className="min-w-0 self-start space-y-6">
             <div className="panel rounded-lg p-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-teal-50 text-teal-700 dark:bg-white/[0.06] dark:text-vault-accent">
@@ -202,12 +216,15 @@ export default function DocumentDetails() {
             <RecommendationsPanel recommendations={recommendations} />
           </section>
 
-          <section className="panel rounded-lg p-5">
+          <section
+            className={`panel box-border flex min-w-0 flex-col self-start overflow-hidden rounded-lg p-5 ${leftColumnHeight ? "lg:h-[var(--document-column-height)]" : ""}`}
+            style={leftColumnHeight ? { "--document-column-height": `${leftColumnHeight}px` } : undefined}
+          >
             <div className="mb-4 flex items-center justify-between gap-3">
               <h2 className="font-semibold text-slate-950 dark:text-white">Extracted text</h2>
               <RefreshCw className="h-4 w-4 text-slate-400 dark:text-slate-500" />
             </div>
-            <div className="max-h-[34rem] overflow-auto rounded-lg border border-slate-200 bg-slate-50/90 p-4 text-sm leading-6 text-slate-700 dark:border-white/10 dark:bg-vault-950/60 dark:text-slate-300">
+            <div className="box-border min-h-0 w-full min-w-0 max-w-full flex-1 overflow-x-hidden overflow-y-auto whitespace-pre-wrap break-words rounded-lg border border-slate-200 bg-slate-50/90 p-4 text-sm leading-6 text-slate-700 dark:border-white/10 dark:bg-vault-950/60 dark:text-slate-300">
               {document.raw_text || document.cleaned_text || "No extracted text available."}
             </div>
           </section>
