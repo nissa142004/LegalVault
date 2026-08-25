@@ -4,6 +4,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import AuthShell from "../components/AuthShell";
 import ErrorBanner from "../components/ErrorBanner";
 import LoadingSpinner from "../components/LoadingSpinner";
+import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../context/AuthContext";
 import { Field } from "./Login";
 
@@ -28,8 +29,8 @@ export default function Register() {
         <Field label="Jurisdiction" icon={Globe2}><input className="input pl-11" placeholder="Country, state, or province" value={form.jurisdiction} onChange={update("jurisdiction")} /></Field>
         <Field label="Bar / professional ID" icon={BadgeCheck}><input className="input pl-11" placeholder="Optional registration number" value={form.professional_id} onChange={update("professional_id")} /></Field>
         <div />
-        <Field label="Password" icon={LockKeyhole}><input className="input pl-11" type="password" autoComplete="new-password" placeholder="At least 8 characters" minLength={8} value={form.password} onChange={update("password")} required /></Field>
-        <Field label="Confirm password" icon={LockKeyhole}><input className="input pl-11" type="password" autoComplete="new-password" placeholder="Repeat your password" minLength={8} value={form.confirmPassword} onChange={update("confirmPassword")} required /></Field>
+        <Field label="Password" icon={LockKeyhole}><PasswordInput className="input pl-11" autoComplete="new-password" placeholder="At least 8 characters" minLength={8} value={form.password} onChange={update("password")} required /></Field>
+        <Field label="Confirm password" icon={LockKeyhole}><PasswordInput className="input pl-11" autoComplete="new-password" placeholder="Repeat your password" minLength={8} value={form.confirmPassword} onChange={update("confirmPassword")} required /></Field>
       </div>
       <p className="text-xs leading-5 text-slate-400">Use at least eight characters with a letter and number. By registering, you agree to use LegalVault only for authorized documents.</p>
       <button className="btn-primary w-full" type="submit" disabled={loading}>{loading ? <LoadingSpinner label="Creating account" /> : <><UserPlus className="h-4 w-4" /> Create account</>}</button>
