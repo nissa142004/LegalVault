@@ -1,87 +1,107 @@
 {
-  "accuracy": 1.0,
+  "accuracy": 0.9775,
+  "training_accuracy": 0.990625,
+  "test_accuracy": 0.9775,
+  "precision": 0.9793490460157127,
+  "recall": 0.9775,
+  "f1_score": 0.9773134246500212,
+  "macro_precision": 0.9793490460157127,
+  "macro_recall": 0.9775,
+  "macro_f1_score": 0.9773134246500212,
+  "weighted_precision": 0.9793490460157126,
+  "weighted_recall": 0.9775,
+  "weighted_f1_score": 0.9773134246500212,
+  "correct_predictions": 391,
+  "incorrect_predictions": 9,
+  "confusion_matrix": [
+    [
+      80,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      71,
+      8,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      80,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      80,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      80
+    ]
+  ],
+  "class_distribution": {
+    "Case Law": 400,
+    "Contract": 400,
+    "Employment": 400,
+    "Lease": 400,
+    "Property": 400
+  },
   "classification_report": {
     "Case Law": {
       "precision": 1.0,
       "recall": 1.0,
       "f1-score": 1.0,
-      "support": 20.0
+      "support": 80.0
     },
     "Contract": {
       "precision": 1.0,
-      "recall": 1.0,
-      "f1-score": 1.0,
-      "support": 20.0
+      "recall": 0.8875,
+      "f1-score": 0.9403973509933775,
+      "support": 80.0
     },
     "Employment": {
-      "precision": 1.0,
+      "precision": 0.9090909090909091,
       "recall": 1.0,
-      "f1-score": 1.0,
-      "support": 20.0
+      "f1-score": 0.9523809523809523,
+      "support": 80.0
     },
     "Lease": {
-      "precision": 1.0,
+      "precision": 0.9876543209876543,
       "recall": 1.0,
-      "f1-score": 1.0,
-      "support": 20.0
+      "f1-score": 0.9937888198757764,
+      "support": 80.0
     },
     "Property": {
       "precision": 1.0,
       "recall": 1.0,
       "f1-score": 1.0,
-      "support": 20.0
+      "support": 80.0
     },
-    "accuracy": 1.0,
+    "accuracy": 0.9775,
     "macro avg": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1-score": 1.0,
-      "support": 100.0
+      "precision": 0.9793490460157127,
+      "recall": 0.9775,
+      "f1-score": 0.9773134246500212,
+      "support": 400.0
     },
     "weighted avg": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1-score": 1.0,
-      "support": 100.0
+      "precision": 0.9793490460157126,
+      "recall": 0.9775,
+      "f1-score": 0.9773134246500212,
+      "support": 400.0
     }
   },
-  "confusion_matrix": [
-    [
-      20,
-      0,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      20,
-      0,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      20,
-      0,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      20,
-      0
-    ],
-    [
-      0,
-      0,
-      0,
-      0,
-      20
-    ]
-  ],
   "labels": [
     "Case Law",
     "Contract",
@@ -89,9 +109,9 @@
     "Lease",
     "Property"
   ],
-  "dataset_rows": 500,
-  "training_rows": 400,
-  "test_rows": 100,
+  "dataset_rows": 2000,
+  "training_rows": 1600,
+  "test_rows": 400,
   "random_state": 42,
-  "trained_at": "2026-06-22T16:10:16.612484+00:00"
+  "trained_at": "2026-08-13T05:42:10.629400+00:00"
 }

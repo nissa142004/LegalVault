@@ -108,10 +108,12 @@ SCHEMAS = {
 
 
 def _openapi_path(rule: str) -> str:
+    """Convert Flask-style path variables to OpenAPI notation."""
     return re.sub(r"<(?:[^:>]+:)?([^>]+)>", r"{\1}", rule)
 
 
 def _response(description: str, example: dict | list | None = None):
+    """Build a standard JSON response description."""
     content = {"application/json": {"schema": {"type": "object"}}}
     if example is not None:
         content["application/json"]["example"] = example
@@ -119,6 +121,7 @@ def _response(description: str, example: dict | list | None = None):
 
 
 def _operation(rule, endpoint: str, method: str) -> dict:
+    """Create OpenAPI metadata for a discovered Flask endpoint."""
     summary, description, tag = OPERATIONS.get(
         endpoint,
         (endpoint.rsplit(".", 1)[-1].replace("_", " ").title(), "Automatically discovered Flask API operation.", "System"),

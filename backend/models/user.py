@@ -6,10 +6,12 @@ from models.database import get_db
 
 
 def users_collection():
+    """Return the user collection used by this module."""
     return get_db().users
 
 
 def serialize_user(user: dict | None) -> dict | None:
+    """Return safe user fields without exposing the password hash."""
     if not user:
         return None
 
@@ -27,10 +29,12 @@ def serialize_user(user: dict | None) -> dict | None:
 
 
 def find_user_by_email(email: str) -> dict | None:
+    """Look up an account by its normalized email address."""
     return users_collection().find_one({"email": email.lower().strip()})
 
 
 def find_user_by_id(user_id: str) -> dict | None:
+    """Look up an account when the supplied ID is valid."""
     if not ObjectId.is_valid(user_id):
         return None
 
@@ -44,6 +48,7 @@ def create_user(
     role: str = "user",
     profile: dict | None = None,
 ) -> dict:
+    """Create and return a new user record."""
     profile = profile or {}
     user = {
         "name": name.strip(),
@@ -65,6 +70,7 @@ def create_user(
 
 
 def update_user_password(user_id: str, hashed_password: str) -> bool:
+    """Store a new password hash for an existing user."""
     if not ObjectId.is_valid(user_id):
         return False
     result = users_collection().update_one(
@@ -75,6 +81,7 @@ def update_user_password(user_id: str, hashed_password: str) -> bool:
 
 
 def update_user_profile(user_id: str, profile: dict) -> dict | None:
+    """Update only the profile fields users are allowed to edit."""
     if not ObjectId.is_valid(user_id):
         return None
     allowed_fields = ("name", "phone", "organization", "job_title", "jurisdiction", "professional_id")

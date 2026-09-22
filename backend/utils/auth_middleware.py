@@ -5,8 +5,9 @@ from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 
 from models.user import find_user_by_id
 
-
+#protect the route
 def auth_required(view):
+    """Require a valid token and make its user available to the view."""
     @wraps(view)
     def wrapped(*args, **kwargs):
         verify_jwt_in_request()

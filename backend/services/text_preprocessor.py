@@ -39,6 +39,7 @@ _SPACY_LOAD_ATTEMPTED = False
 
 
 def preprocess_text(text: str, lemmatize: bool = True) -> str:
+    """Prepare text for matching by cleaning and filtering its words."""
     tokens = tokenize_text(clean_text(text))
     stopword_set = get_stopwords()
     filtered_tokens = [
@@ -54,6 +55,7 @@ def preprocess_text(text: str, lemmatize: bool = True) -> str:
 
 
 def clean_text(text: str) -> str:
+    """Lowercase text"""
     normalized = text.lower()
     normalized = normalized.translate(str.maketrans("", "", string.punctuation))
     normalized = re.sub(r"\s+", " ", normalized).strip()
@@ -62,6 +64,7 @@ def clean_text(text: str) -> str:
 
 
 def tokenize_text(text: str) -> list[str]:
+    """Break text into usable words"""
     try:
         return [
             token
@@ -73,6 +76,7 @@ def tokenize_text(text: str) -> list[str]:
 
 
 def lemmatize_tokens(tokens: list[str]) -> list[str]:
+    """Prefer spaCy lemmas, with NLTK as a small fallback."""
     spacy_lemmas = lemmatize_with_spacy(tokens)
     if spacy_lemmas:
         return spacy_lemmas
@@ -81,6 +85,7 @@ def lemmatize_tokens(tokens: list[str]) -> list[str]:
 
 
 def lemmatize_with_spacy(tokens: list[str]) -> list[str]:
+    """Use the installed spaCy model when it is available."""
     global _SPACY_LOAD_ATTEMPTED, _SPACY_NLP
 
     try:
@@ -100,6 +105,7 @@ def lemmatize_with_spacy(tokens: list[str]) -> list[str]:
 
 
 def lemmatize_with_nltk(tokens: list[str]) -> list[str]:
+    """Reduce words to their base form using NLTK."""
     try:
         nltk.data.find("corpora/wordnet")
         lemmatizer = WordNetLemmatizer()

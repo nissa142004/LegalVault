@@ -11,10 +11,12 @@ MIN_KEYWORD_LENGTH = 3
 
 
 def documents_collection():
+    """Return the document collection used by this module."""
     return get_db().documents
 
 
 def top_keywords(document: dict) -> list[str]:
+    """Keep a short, readable list of useful document keywords."""
     stopword_set = get_stopwords()
     keywords = []
     seen = set()
@@ -38,6 +40,7 @@ def top_keywords(document: dict) -> list[str]:
 
 
 def serialize_document(document: dict) -> dict:
+    """Turn a stored document into the standard API response."""
     upload_date = document["upload_date"]
     if upload_date.tzinfo is None:
         upload_date = upload_date.replace(tzinfo=timezone.utc)
@@ -83,6 +86,7 @@ def serialize_document(document: dict) -> dict:
 
 
 def serialize_document_text(document: dict) -> dict:
+    """Add stored text and NLP results to the normal document response."""
     serialized = serialize_document(document)
     serialized["raw_text"] = document.get("raw_text", document.get("extracted_text", ""))
     serialized["cleaned_text"] = document.get("cleaned_text", "")
@@ -94,6 +98,7 @@ def serialize_document_text(document: dict) -> dict:
 
 
 def serialize_document_nlp(document: dict) -> dict:
+    """Add only the saved keyword and summary results."""
     serialized = serialize_document(document)
     serialized["keywords"] = top_keywords(document)
     serialized["summary_generated"] = bool(document.get("summary_generated_at"))
@@ -119,6 +124,7 @@ def create_document(
     category_confidence: float | None = None,
     metadata: dict | None = None,
 ) -> dict:
+    """Create a new document record with its initial processing data."""
     now = datetime.now(timezone.utc)
     final_confidence = confidence_score if confidence_score is not None else category_confidence
     final_category = predicted_category or category or "Uncategorized"
@@ -149,6 +155,7 @@ def create_document(
 
 
 def update_document_metadata(document_id: str, user_id: str, metadata: dict) -> dict | None:
+    """Update editable metadata for one of the user's documents."""
     if not ObjectId.is_valid(document_id):
         return None
 
@@ -163,6 +170,7 @@ def update_document_metadata(document_id: str, user_id: str, metadata: dict) -> 
 
 
 def find_documents_by_user(user_id: str) -> list[dict]:
+    """List a user's documents with the newest ones first."""
     return list(
         documents_collection()
         .find({"$or": [{"uploaded_by": user_id}, {"user_id": user_id}]})
@@ -171,6 +179,7 @@ def find_documents_by_user(user_id: str) -> list[dict]:
 
 
 def find_document_by_id(document_id: str, user_id: str) -> dict | None:
+    """Find a document only when it belongs to this user."""
     if not ObjectId.is_valid(document_id):
         return None
 
@@ -183,6 +192,7 @@ def find_document_by_id(document_id: str, user_id: str) -> dict | None:
 
 
 def delete_document_by_id(document_id: str, user_id: str) -> dict | None:
+    """Remove a user's document and return it for file cleanup."""
     document = find_document_by_id(document_id, user_id)
     if not document:
         return None
@@ -193,6 +203,7 @@ def delete_document_by_id(document_id: str, user_id: str) -> dict | None:
 
 
 def update_document_nlp(document_id: str, user_id: str, keywords: list[str], summary: str):
+    """Save generated keywords and a summary for a document."""
     if not ObjectId.is_valid(document_id):
         return None
 
@@ -218,6 +229,7 @@ def update_document_keywords(
     user_id: str,
     keywords: list[str],
 ) -> dict | None:
+    """Replace the stored keywords for one document."""
     if not ObjectId.is_valid(document_id):
         return None
 
@@ -238,6 +250,7 @@ def update_document_summary(
     summary: str,
     summary_sentence_count: int,
 ) -> dict | None:
+    """Save a generated summary and when it was created."""
     if not ObjectId.is_valid(document_id):
         return None
 
@@ -265,6 +278,7 @@ def update_document_text(
     raw_text: str,
     cleaned_text: str,
 ) -> dict | None:
+    """Save extracted text and its cleaned search version."""
     if not ObjectId.is_valid(document_id):
         return None
 

@@ -18,6 +18,7 @@ PROFILE_FIELDS = ("phone", "organization", "job_title", "jurisdiction", "profess
 
 
 def validate_auth_payload(data: dict, require_name: bool = False) -> tuple[dict, str | None]:
+    """Clean and validate the fields used for sign-up or sign-in."""
     name = (data.get("name") or "").strip()
     email = (data.get("email") or "").lower().strip()
     password = data.get("password") or ""
@@ -57,6 +58,7 @@ def validate_auth_payload(data: dict, require_name: bool = False) -> tuple[dict,
 
 
 def create_user_token(user: dict) -> str:
+    """Create an access token that carries the user's role."""
     return create_access_token(
         identity=str(user["_id"]),
         additional_claims={"role": user.get("role", "user")},
@@ -64,6 +66,7 @@ def create_user_token(user: dict) -> str:
 
 
 def admin_registration_allowed(data: dict) -> bool:
+    """Allow admin sign-up only with the configured registration key."""
     expected_key = current_app.config.get("ADMIN_REGISTRATION_KEY")
     submitted_key = data.get("admin_key")
 
@@ -72,6 +75,7 @@ def admin_registration_allowed(data: dict) -> bool:
 
 @auth_bp.post("/register")
 def register():
+    """Create an account, then return a token for the new user."""
     data = request.get_json(silent=True) or {}
     payload, error = validate_auth_payload(data, require_name=True)
     if error:
@@ -101,11 +105,13 @@ def register():
 
 
 def reset_serializer():
+    """Build the signed serializer used for password reset links."""
     return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="password-reset")
 
 
 @auth_bp.post("/forgot-password")
 def forgot_password():
+    """Send a reset link when the submitted email belongs to an account."""
     data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").lower().strip()
     if not email or not EMAIL_PATTERN.match(email):
@@ -121,6 +127,7 @@ def forgot_password():
 
 @auth_bp.post("/reset-password")
 def reset_password():
+    """Verify a reset link and replace the user's password."""
     data = request.get_json(silent=True) or {}
     token = data.get("token") or ""
     password = data.get("password") or ""
@@ -142,6 +149,7 @@ def reset_password():
 
 @auth_bp.post("/login")
 def login():
+    """Check credentials and return a fresh access token."""
     data = request.get_json(silent=True) or {}
     payload, error = validate_auth_payload(data)
     if error:
@@ -159,12 +167,14 @@ def login():
 @auth_bp.get("/me")
 @auth_required
 def me():
+    """Return the signed-in user's basic account details."""
     return jsonify({"user": serialize_user(g.current_user)}), 200
 
 
 @auth_bp.get("/profile")
 @auth_required
 def profile():
+    """Return the signed-in user's profile with their token role."""
     claims = get_jwt()
     user = serialize_user(g.current_user)
     user["role"] = claims.get("role", user.get("role", "user"))
@@ -175,6 +185,7 @@ def profile():
 @auth_bp.patch("/profile")
 @auth_required
 def edit_profile():
+    """Validate and save the editable parts of a user profile."""
     data = request.get_json(silent=True) or {}
     name = (data.get("name") or "").strip()
     if len(name) < 2 or len(name) > 80:

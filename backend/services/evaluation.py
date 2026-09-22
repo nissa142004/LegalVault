@@ -8,6 +8,7 @@ from typing import Any
 
 
 def load_classification_metrics(metrics_path: str | Path) -> dict[str, Any]:
+    """Read the saved classifier results for the analytics view."""
     path = Path(metrics_path)
     if not path.is_file():
         return {"available": False, "message": "Classification metrics artifact not found."}
@@ -37,6 +38,7 @@ def load_classification_metrics(metrics_path: str | Path) -> dict[str, Any]:
 
 
 def summarization_metrics(documents: list[dict]) -> dict[str, Any]:
+    """Measure saved summaries against their source and references."""
     evaluated = []
     compression_ratios = []
     rouge_1_scores = []
@@ -86,10 +88,12 @@ def summarization_metrics(documents: list[dict]) -> dict[str, Any]:
 
 
 def _tokens(text: str) -> list[str]:
+    """Keep simple lowercase tokens for the metric calculations."""
     return re.findall(r"[a-zA-Z0-9]+", text.lower())
 
 
 def _compression_ratio(source: str, summary: str) -> float:
+    """Show how much shorter the summary is than its source."""
     source_tokens = _tokens(source)
     summary_tokens = _tokens(summary)
     if not source_tokens:
@@ -98,6 +102,7 @@ def _compression_ratio(source: str, summary: str) -> float:
 
 
 def _rouge_n(reference: str, candidate: str, n: int) -> float:
+    """Calculate n-gram recall against a reference summary."""
     reference_tokens = _tokens(reference)
     candidate_tokens = _tokens(candidate)
     if len(reference_tokens) < n or len(candidate_tokens) < n:
@@ -116,6 +121,7 @@ def _rouge_n(reference: str, candidate: str, n: int) -> float:
 
 
 def _rouge_l(reference: str, candidate: str) -> float:
+    """Calculate longest-common-subsequence recall for two summaries."""
     reference_tokens = _tokens(reference)
     candidate_tokens = _tokens(candidate)
     if not reference_tokens or not candidate_tokens:

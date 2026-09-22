@@ -15,6 +15,7 @@ from utils.error_handlers import register_error_handlers
 
 
 def create_app() -> Flask:
+    """Set up the Flask app, its routes, database, and error handling."""
     app = Flask(__name__)
     app.config.from_object(Config)
 

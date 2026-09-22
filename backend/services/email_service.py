@@ -13,6 +13,7 @@ LOGO_PATH = Path(__file__).resolve().parents[2] / "frontend" / "public" / "legal
 
 
 def _send_email(recipient: str, subject: str, heading: str, body: str, action=None) -> bool:
+    """Build an email and send it quietly in the background."""
     username = current_app.config.get("MAIL_USERNAME")
     password = current_app.config.get("MAIL_PASSWORD")
     if not username or not password:
@@ -52,8 +53,10 @@ def _send_email(recipient: str, subject: str, heading: str, body: str, action=No
 
 
 def send_welcome_email(user: dict) -> bool:
+    
     return _send_email(user["email"], "Welcome to LegalVault", f"Welcome, {user['name']}!", "Your secure LegalVault workspace is ready. You can now organize, search, and understand your legal documents with confidence.")
 
 
 def send_password_reset_email(user: dict, reset_url: str) -> bool:
+  
     return _send_email(user["email"], "Reset your LegalVault password", "Reset your password", "We received a request to reset your LegalVault password. This link expires in one hour. If you did not request this, you can safely ignore this email.", ("Reset password", reset_url))

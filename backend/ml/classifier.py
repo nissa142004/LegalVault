@@ -12,11 +12,12 @@ LOW_CONFIDENCE_THRESHOLD = 0.50
 
 
 class ModelNotAvailableError(RuntimeError):
-    """Raised when the trained classifier artifact cannot be loaded."""
+    """Raised when the saved classifier model cannot be loaded."""
 
 
 @lru_cache(maxsize=4)
 def load_model(model_path: str) -> dict[str, Any]:
+    """Load a checked model artifact and keep it cached in memory."""
     path = Path(model_path)
     if not path.is_file():
         raise ModelNotAvailableError(
@@ -34,6 +35,8 @@ def predict_category(
     model_path: str | Path = DEFAULT_MODEL_PATH,
     low_confidence_threshold: float = LOW_CONFIDENCE_THRESHOLD,
 ) -> dict[str, Any]:
+    """Predict a legal category and include the confidence details."""
+
     artifact = load_model(str(Path(model_path).resolve()))
     pipeline = artifact["pipeline"]
     probabilities = pipeline.predict_proba([text])[0]

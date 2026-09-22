@@ -40,13 +40,15 @@ ALLOWED_CONFIDENTIALITY = {"Public", "Internal", "Confidential", "Highly confide
 ALLOWED_PRIVILEGE = {"Not privileged", "Attorney-client privileged", "Attorney work product"}
 ALLOWED_REVIEW_STATUS = {"Needs review", "In review", "Approved", "Archived"}
 
-
+#extension
 def allowed_file(filename: str) -> bool:
+    """Accept only the document formats the extractor understands."""
     return Path(filename).suffix.lower() in ALLOWED_EXTENSIONS
 
 
 @auth_required
 def handle_upload_document():
+    """Save an upload, extract its text, and prepare its first results."""
     if "file" not in request.files:
         return jsonify({"message": "A file field is required."}), 400
 
@@ -61,7 +63,7 @@ def handle_upload_document():
     if not original_name:
         return jsonify({"message": "Invalid filename."}), 400
 
-    extension = Path(original_name).suffix.lower()
+    extension = Path(original_name).suffix.lower() #unique filename for safe storage
     stored_filename = f"{uuid4().hex}{extension}"
     upload_path = Path(current_app.config["UPLOAD_FOLDER"])
     upload_path.mkdir(parents=True, exist_ok=True)
@@ -76,7 +78,7 @@ def handle_upload_document():
         file_path.unlink(missing_ok=True)
         return jsonify({"message": "Unable to extract text from this document."}), 422
 
-    predicted_category = "Uncategorized"
+    predicted_category = "Uncategorized" #classifier call
     confidence_score = None
     classification_status = "unavailable"
     classification_warning = None
@@ -107,7 +109,7 @@ def handle_upload_document():
     if privilege not in ALLOWED_PRIVILEGE:
         file_path.unlink(missing_ok=True)
         return jsonify({"message": "Invalid privilege classification."}), 400
-
+    #SAVE TO DATABASE
     document = create_document(
         filename=original_name,
         filepath=str(file_path),
@@ -129,7 +131,7 @@ def handle_upload_document():
         },
     )
 
-    all_documents = find_documents_by_user(str(g.current_user["_id"]))
+    all_documents = find_documents_by_user(str(g.current_user["_id"]))  #SIMILLAR DOC
     recommendations = _recommendations_for_text(
         raw_text,
         all_documents,
@@ -159,17 +161,20 @@ def handle_upload_document():
 
 @documents_bp.post("/documents/upload")
 def upload_document():
+    """Handle uploads through the current documents endpoint."""
     return handle_upload_document()
 
 
 @documents_bp.post("/upload")
 def upload_document_legacy():
+    """Keep the older upload URL working with the same handler."""
     return handle_upload_document()
 
 
 @documents_bp.get("/documents")
 @auth_required
 def list_documents():
+    """List the signed-in user's documents."""
     documents = find_documents_by_user(str(g.current_user["_id"]))
 
     return jsonify(
@@ -180,6 +185,7 @@ def list_documents():
 @documents_bp.get("/documents/<document_id>")
 @auth_required
 def get_document(document_id):
+    """Return one document when it belongs to the signed-in user."""
     document = find_document_by_id(document_id, str(g.current_user["_id"]))
     if not document:
         return jsonify({"message": "Document not found."}), 404
@@ -190,6 +196,7 @@ def get_document(document_id):
 @documents_bp.patch("/documents/<document_id>")
 @auth_required
 def update_document(document_id):
+    """Update the allowed metadata fields on a document."""
     document = find_document_by_id(document_id, str(g.current_user["_id"]))
     if not document:
         return jsonify({"message": "Document not found."}), 404
@@ -222,6 +229,7 @@ def update_document(document_id):
 @documents_bp.post("/search")
 @auth_required
 def search_documents():
+    """Search a user's documents by text, category, or metadata."""
     data = request.get_json(silent=True) or {}
     query = str(data.get("query", "")).strip()
     if not query:
@@ -283,6 +291,7 @@ def _recommendations_for_text(
     category: str | None,
     exclude_document_id: str | None = None,
 ) -> list[dict]:
+    """Find a few related documents for newly supplied text."""
     ranked_matches = rank_documents_by_similarity(
         text,
         documents,
@@ -309,6 +318,7 @@ def _recommendations_for_text(
 @documents_bp.get("/documents/<document_id>/recommendations")
 @auth_required
 def recommend_similar_documents(document_id):
+    """Suggest documents that are similar to the chosen document."""
     document = find_document_by_id(document_id, str(g.current_user["_id"]))
     if not document:
         return jsonify({"message": "Document not found."}), 404
@@ -339,6 +349,7 @@ def recommend_similar_documents(document_id):
 @documents_bp.get("/documents/<document_id>/text")
 @auth_required
 def get_document_text(document_id):
+    """Return extracted and cleaned text for one document."""
     document = find_document_by_id(document_id, str(g.current_user["_id"]))
     if not document:
         return jsonify({"message": "Document not found."}), 404
@@ -349,6 +360,7 @@ def get_document_text(document_id):
 @documents_bp.get("/documents/<document_id>/original")
 @auth_required
 def view_original_document(document_id):
+    """Send the original uploaded file back to its owner."""
     document = find_document_by_id(document_id, str(g.current_user["_id"]))
     if not document:
         return jsonify({"message": "Document not found."}), 404
@@ -371,6 +383,7 @@ def view_original_document(document_id):
 @documents_bp.delete("/documents/<document_id>")
 @auth_required
 def delete_document(document_id):
+    """Delete a document record and its uploaded file."""
     document = delete_document_by_id(document_id, str(g.current_user["_id"]))
     if not document:
         return jsonify({"message": "Document not found."}), 404
@@ -391,6 +404,7 @@ def delete_document(document_id):
 @documents_bp.post("/process-document/<document_id>")
 @auth_required
 def process_document_text(document_id):
+    """Rebuild the cleaned text used by search and NLP tools."""
     document = find_document_by_id(document_id, str(g.current_user["_id"]))
     if not document:
         return jsonify({"message": "Document not found."}), 404
@@ -422,6 +436,7 @@ def process_document_text(document_id):
 @documents_bp.post("/extract-keywords/<document_id>")
 @auth_required
 def extract_document_keywords(document_id):
+    """Generate and save useful key phrases from a document."""
     document = find_document_by_id(document_id, str(g.current_user["_id"]))
     if not document:
         return jsonify({"message": "Document not found."}), 404
@@ -444,6 +459,7 @@ def extract_document_keywords(document_id):
 @documents_bp.post("/documents/<document_id>/summarize")
 @auth_required
 def summarize_document(document_id):
+    """Create and save a short extractive summary."""
     document = find_document_by_id(document_id, str(g.current_user["_id"]))
     if not document:
         return jsonify({"message": "Document not found."}), 404
@@ -479,6 +495,7 @@ def summarize_document(document_id):
 @documents_bp.post("/documents/<document_id>/process")
 @auth_required
 def process_document(document_id):
+    """Run text cleanup, keyword extraction, and summarization together."""
     document = find_document_by_id(document_id, str(g.current_user["_id"]))
     if not document:
         return jsonify({"message": "Document not found."}), 404

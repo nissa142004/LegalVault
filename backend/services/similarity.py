@@ -10,20 +10,23 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 @dataclass(frozen=True)
 class TfidfIndex:
-    fingerprint: str
+    """The searchable document TFIDF vectors kept for one cache entry."""
+    fingerprint: str #hash of the document set
     documents: list[dict]
     vectorizer: TfidfVectorizer
-    matrix: object
+    matrix: object #store above 
 
 
-_INDEX_CACHE: dict[str, TfidfIndex] = {}
+_INDEX_CACHE: dict[str, TfidfIndex] = {} 
 
-
+#helpers
 def _document_text(document: dict) -> str:
+    """Use cleaned text first, falling back to the original text."""
     return (document.get("cleaned_text") or document.get("raw_text") or "").strip()
 
 
 def _document_category(document: dict) -> str:
+    """Return the current category while supporting older records."""
     return (
         document.get("predicted_category")
         or document.get("category")
@@ -33,6 +36,7 @@ def _document_category(document: dict) -> str:
 
 
 def _fingerprint(documents: Iterable[dict]) -> str:
+    """Make a small signature so stale search indexes are rebuilt."""
     digest = sha1()
     for document in documents:
         digest.update(str(document.get("_id", "")).encode("utf-8"))
@@ -47,6 +51,7 @@ def build_tfidf_index(
     cache_key: str,
     category: str | None = None,
 ) -> TfidfIndex | None:
+    """Build or reuse vectors for the documents that can be searched."""
     searchable = [
         document
         for document in documents
@@ -85,6 +90,7 @@ def rank_documents_by_similarity(
     cache_namespace: str = "search",
     exclude_document_id: str | None = None,
 ) -> list[dict]:
+    """Return the documents whose text is closest to the query."""
     if not query.strip():
         return []
 

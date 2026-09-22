@@ -7,6 +7,8 @@ import ErrorBanner from "../components/ErrorBanner";
 import LoadingSpinner from "../components/LoadingSpinner";
 import PageHeader from "../components/PageHeader";
 
+const SUPPORTED_EXTENSIONS = [".pdf", ".docx"];
+
 export default function Upload() {
   const inputRef = useRef(null);
   const [file, setFile] = useState(null);
@@ -50,6 +52,21 @@ export default function Upload() {
     }
   }
 
+  function handleFileChange(event) {
+    const selectedFile = event.target.files?.[0] || null;
+    const extension = selectedFile ? selectedFile.name.slice(selectedFile.name.lastIndexOf(".")).toLowerCase() : "";
+
+    if (selectedFile && !SUPPORTED_EXTENSIONS.includes(extension)) {
+      setFile(null);
+      setError("Only PDF and DOCX files are supported.");
+      event.target.value = "";
+      return;
+    }
+
+    setError("");
+    setFile(selectedFile);
+  }
+
   return (
     <>
       <PageHeader
@@ -81,8 +98,7 @@ export default function Upload() {
               ref={inputRef}
               className="sr-only"
               type="file"
-              accept=".pdf,.docx"
-              onChange={(event) => setFile(event.target.files?.[0] || null)}
+              onChange={handleFileChange}
             />
           </label>
 

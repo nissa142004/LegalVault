@@ -15,6 +15,7 @@ import { NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
 
 import LoadingSpinner from "./components/LoadingSpinner";
 import ProductLogo from "./components/ProductLogo";
+import SuccessBanner from "./components/SuccessBanner";
 import ThemeToggle from "./components/ThemeToggle";
 import { useAuth } from "./context/AuthContext";
 
@@ -44,7 +45,9 @@ export default function App() {
     );
   }
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ authMessage: "Please sign in to access your protected workspace." }} />;
+  }
 
   return (
     <div className="min-h-screen text-slate-900 dark:text-slate-100">
@@ -93,6 +96,7 @@ export default function App() {
 
       <main className="min-h-[calc(100vh-4rem)] lg:ml-72 lg:min-h-screen">
         <div className="mx-auto w-full max-w-[90rem] px-4 py-6 sm:px-6 lg:px-10 lg:py-9">
+          <SuccessBanner message={location.state?.successMessage} />
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

@@ -30,8 +30,7 @@ frontend/dist/
 frontend/.vite/
 *.local
 
-# Generated ML artifacts
-backend/ml/artifacts/*.joblib
+
 
 # Tool/editor noise
 .DS_Store

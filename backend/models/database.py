@@ -6,6 +6,7 @@ from pymongo.errors import PyMongoError
 
 
 def _install_mongo_dns_fallback(nameservers):
+    """Resolve MongoDB hosts directly when SRV DNS is unavailable."""
     resolver = dns.resolver.Resolver(configure=False)
     resolver.nameservers = nameservers
     dns.resolver.default_resolver = resolver
@@ -38,6 +39,7 @@ def _install_mongo_dns_fallback(nameservers):
 
 
 def init_mongo(app):
+    """Connect to MongoDB and create the indexes the app relies on."""
     mongo_uri = app.config["MONGO_URI"]
     if not mongo_uri:
         raise RuntimeError("MONGO_URI is required. Add it to backend/.env.")
@@ -65,6 +67,7 @@ def init_mongo(app):
 
 
 def get_db():
+    """Reuse one database handle during the current request."""
     if "mongo_db" not in g:
         client = current_app.config["MONGO_CLIENT"]
         g.mongo_db = client[current_app.config["MONGO_DB_NAME"]]
@@ -72,6 +75,7 @@ def get_db():
 
 
 def ping_mongo() -> bool:
+    """Check whether the configured MongoDB server is reachable."""
     try:
         current_app.config["MONGO_CLIENT"].admin.command("ping")
         return True
@@ -80,4 +84,5 @@ def ping_mongo() -> bool:
 
 
 def close_mongo(exception=None):
+    """Drop the request-local database reference after a request."""
     g.pop("mongo_db", None)

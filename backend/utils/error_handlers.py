@@ -7,6 +7,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 
 
 def register_error_handlers(app):
+    """Return consistent JSON responses for common application errors."""
     @app.errorhandler(RequestEntityTooLarge)
     def handle_large_upload(error):
         max_mb = app.config.get("MAX_CONTENT_LENGTH", 0) // (1024 * 1024)

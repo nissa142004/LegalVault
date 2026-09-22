@@ -8,6 +8,7 @@ classification_bp = Blueprint("classification", __name__)
 
 @classification_bp.post("/predict-category")
 def classify_legal_document():
+    """Classify submitted text and return the model's confidence."""
     if not request.is_json:
         return jsonify({"message": "Request body must be JSON."}), 415
 

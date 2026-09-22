@@ -139,6 +139,7 @@ def _rake_candidates(text: str) -> list[tuple[str, ...]]:
 
 
 def _singularize(word: str) -> str:
+    """Normalize simple plural forms before comparing phrases."""
     if len(word) > 4 and word.endswith("ies"):
         return word[:-3] + "y"
     if len(word) > 4 and word.endswith("s") and not word.endswith("ss"):
@@ -147,6 +148,7 @@ def _singularize(word: str) -> str:
 
 
 def _is_near_duplicate(candidate: set[str], selected: set[str]) -> bool:
+    """Treat heavily overlapping phrases as the same keyword."""
     if candidate == selected:
         return True
     overlap = len(candidate & selected) / max(len(candidate | selected), 1)
@@ -154,6 +156,7 @@ def _is_near_duplicate(candidate: set[str], selected: set[str]) -> bool:
 
 
 def summarize_textrank(text: str, max_sentences: int = 3) -> str:
+    """Create a short TextRank summary, with a local fallback."""
     sentence_count = max(1, min(max_sentences, 20))
     try:
         from sumy.nlp.tokenizers import Tokenizer
@@ -175,6 +178,7 @@ def summarize_textrank(text: str, max_sentences: int = 3) -> str:
 
 
 def local_textrank_summary(text: str, max_sentences: int = 3) -> str:
+    """Pick the most connected sentences without external NLP data."""
     sentences = split_sentences(text)
     if len(sentences) <= max_sentences:
         return " ".join(sentences)
@@ -202,6 +206,7 @@ def local_textrank_summary(text: str, max_sentences: int = 3) -> str:
 
 
 def split_sentences(text: str) -> list[str]:
+    """Split text into sentences using NLTK or a simple fallback."""
     try:
         import nltk
 
@@ -221,6 +226,7 @@ def split_sentences(text: str) -> list[str]:
 
 
 def textrank_scores(sentence_words: list[list[str]]) -> list[float]:
+    """Score sentences by how strongly they relate to the others."""
     sentence_count = len(sentence_words)
     scores = [1.0] * sentence_count
     # TextRank graph: each sentence is a node, and edge weights are sentence similarities.
@@ -251,6 +257,7 @@ def textrank_scores(sentence_words: list[list[str]]) -> list[float]:
 
 
 def sentence_similarity(first_words: list[str], second_words: list[str]) -> float:
+    """Estimate sentence relatedness from their shared words."""
     if not first_words or not second_words:
         return 0.0
 
@@ -269,6 +276,7 @@ def rank_documents_by_tfidf(
     documents: list[dict],
     max_results: int = 5,
 ) -> list[dict]:
+    """Rank document text against a query with TF-IDF similarity."""
     searchable_documents = [
         document
         for document in documents
